@@ -15,8 +15,8 @@ tolerance interval of 15 seconds between points. You can configure this
 interval by setting `max_point_interval`, in milliseconds, in the options
 passed to the `GPX` constructor.
 
-A complete usage example is available in
-[demo.html](leaflet-gpx/blob/master/demo.html).
+I've put together a complete example as a
+[demo](http://mpetazzoni.github.com/leaflet-gpx/).
 
 
 Usage
