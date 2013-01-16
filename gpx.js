@@ -68,8 +68,8 @@ L.GPX = L.FeatureGroup.extend({
     this._info = {
       name: null,
       length: 0.0,
-      elevation: {gain: 0.0, loss: 0.0, start: 0.0},
-      hr: {_total: 0, _points: 0, avg: 0},
+      elevation: {gain: 0.0, loss: 0.0, _points: []},
+      hr: {avg: 0, _total: 0, _points: []},
       duration: {start: null, end: null, moving: 0, total: 0},
     };
 
@@ -102,16 +102,55 @@ L.GPX = L.FeatureGroup.extend({
     return s;
   },
 
-  get_name:         function() { return this._info.name; },
-  get_start_time:   function() { return this._info.duration.start; },
-  get_end_time:     function() { return this._info.duration.end; },
-  get_distance:     function() { return this._info.length; },
-  get_moving_time:  function() { return this._info.duration.moving; },
-  get_total_time:   function() { return this._info.duration.total; },
-  get_average_hr:   function() { return this._info.hr.avg; },
+  to_miles:            function(v) { return v / 1.60934; },
+  to_ft:               function(v) { return v * 3.28084; },
+  m_to_km:             function(v) { return v / 1000; },
+  m_to_mi:             function(v) { return v / 1609.34; },
 
-  get_distance_in_miles:    function() { return this.get_distance() / 1000.0 / 1.60934; },
-  get_moving_pace_in_miles: function() { return this._info.duration.moving / this.get_distance_in_miles(); },
+  get_name:            function() { return this._info.name; },
+  get_distance:        function() { return this._info.length; },
+  get_distance_imp:    function() { return this.to_miles(this.m_to_km(this.get_distance())); },
+
+  get_start_time:      function() { return this._info.duration.start; },
+  get_end_time:        function() { return this._info.duration.end; },
+  get_moving_time:     function() { return this._info.duration.moving; },
+  get_total_time:      function() { return this._info.duration.total; },
+
+  get_moving_pace:     function() { return this.get_moving_time() / this.m_to_km(this.get_distance()); },
+  get_moving_pace_imp: function() { return this.get_moving_time() / this.get_distance_imp(); },
+
+  get_elevation_gain:     function() { return this._info.elevation.gain; },
+  get_elevation_loss:     function() { return this._info.elevation.loss; },
+  get_elevation_data:     function() {
+    var _this = this;
+    return this._info.elevation._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_km, null,
+        function(a, b) { return a.toFixed(2) + ' km, ' + b.toFixed(0) + ' m'; });
+      });
+  },
+  get_elevation_data_imp: function() {
+    var _this = this;
+    return this._info.elevation._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_mi, _this.to_ft,
+        function(a, b) { return a.toFixed(2) + ' mi, ' + b.toFixed(0) + ' ft'; });
+      });
+  },
+
+  get_average_hr:         function() { return this._info.hr.avg; },
+  get_heartrate_data:     function() {
+    var _this = this;
+    return this._info.hr._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_km, null,
+        function(a, b) { return a.toFixed(2) + ' km, ' + b.toFixed(0) + ' bpm'; });
+      });
+  },
+  get_heartrate_data_imp: function() {
+    var _this = this;
+    return this._info.hr._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_mi, null,
+        function(a, b) { return a.toFixed(2) + ' mi, ' + b.toFixed(0) + ' bpm'; });
+      });
+  },
 
   // Private methods
 
@@ -120,6 +159,12 @@ L.GPX = L.FeatureGroup.extend({
     for (var attr in a) { _[attr] = a[attr]; }
     for (var attr in b) { _[attr] = b[attr]; }
     return _;
+  },
+
+  _prepare_data_point: function(p, trans1, trans2, trans_tooltip) {
+    var r = [trans1 && trans1(p[0]) || p[0], trans2 && trans2(p[1]) || p[1]];
+    r.push(trans_tooltip && trans_tooltip(r[0], r[1]) || (r[0] + ': ' + r[1]));
+    return r;
   },
 
   _load_xml: function(url, cb, options, async) {
@@ -186,7 +231,7 @@ L.GPX = L.FeatureGroup.extend({
       }
     }
 
-    this._info.hr.avg = Math.round(this._info.hr._total / this._info.hr._points);
+    this._info.hr.avg = Math.round(this._info.hr._total / this._info.hr._points.length);
 
     if (!layers.length) return;
     var layer = layers[0];
@@ -207,35 +252,32 @@ L.GPX = L.FeatureGroup.extend({
         el[i].getAttribute('lon'));
       ll.meta = {
         time: new Date(Date.parse(el[i].getElementsByTagName('time')[0].textContent)),
-        ele: el[i].getElementsByTagName('ele')[0].textContent,
+        ele: parseFloat(el[i].getElementsByTagName('ele')[0].textContent),
         hr: null,
       };
 
       var _ = el[i].getElementsByTagNameNS('*', 'hr');
       if (_.length > 0) {
         ll.meta.hr = parseInt(_[0].textContent);
-        this._info.hr._points++;
+        this._info.hr._points.push([this._info.length, ll.meta.hr]);
         this._info.hr._total += ll.meta.hr;
       }
+
+      this._info.elevation._points.push([this._info.length, ll.meta.ele]);
+      this._info.duration.end = ll.meta.time;
 
       if (last != null) {
         this._info.length += this._dist3d(last, ll);
 
-        var t = Math.abs(ll.meta.ele - last.meta.ele);
+        var t = ll.meta.ele - last.meta.ele;
         if (t > 0) this._info.elevation.gain += t;
-        else this._info.elevation.loss += t;
+        else this._info.elevation.loss += Math.abs(t);
 
         t = Math.abs(ll.meta.time - last.meta.time);
         this._info.duration.total += t;
         if (t < options.max_point_interval) this._info.duration.moving += t;
       } else {
-        this._info.elevation.start = ll.meta.ele;
         this._info.duration.start = ll.meta.time;
-      }
-
-      if (i == el.length - 1) {
-        this._info.elevation.end = ll.meta.ele;
-        this._info.duration.end = ll.meta.time;
       }
 
       last = ll;

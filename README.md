@@ -45,20 +45,24 @@ so in the 'loaded' event handler, calling one of the following methods on the
 `GPX` object `e.target`:
 
 * `get_name()`: returns the name of the GPX track
+* `get_distance()`: returns the total track distance, in meters
 * `get_start_time()`: returns a Javascript `Date` object representing the
   starting time
 * `get_end_time()`: returns a Javascript `Date` object representing when the
   last point was recorded
-* `get_distance()`: returns the total track distance, in meters
 * `get_moving_time()`: returns the moving time, in milliseconds
 * `get_total_time()`: returns the total track time, in milliseconds
+* `get_moving_pace()`: returns the average moving pace in milliseconds per km
+* `get_elevation_gain()`: returns the cumulative elevation gain, in meters
+* `get_elevation_loss()`: returns the cumulative elevation loss, in meters
 * `get_average_hr()`: returns the average heart rate (if available)
 
-If you like miles, you also have the following methods at your disposal:
+If you're not a fan of the metric system, you also have the following methods
+at your disposal:
 
-* `get_distance_in_miles()`: returns the total track distance, in miles
-* `get_moving_pace_in_miles()`: returns the average moving pace, in
-  milliseconds per mile
+* `get_distance_imp()`: returns the total track distance in miles
+* `get_moving_pace_imp()`: returns the average moving pace in milliseconds per
+  mile
 
 The reason why these methods return milliseconds is that you have at your
 disposal a nice helper method to format a duration in milliseconds into a cool
@@ -67,6 +71,16 @@ string like `3:07'48"` or `59'32.431`:
 * `get_duration_string(duration, hidems)`, where `duration` is in
   milliseconds and `hidems` is an optional boolean you can use to request never
   to display millisecond precision.
+
+You can also get full elevation and heartrate data with:
+
+* `get_elevation_data()` and `get_elevation_data_imp()`
+* `get_heartrate_data()` and `get_heartrate_data_imp()`
+
+These methods all return an array of points `[distance, value, tooltip]` where
+the distance is either in kilometers or in miles and the elevation in meters of
+feet, depending on whether you use the `_imp` variant or not. Heart rate,
+obviously, doesn't change.
 
 
 About marker icons

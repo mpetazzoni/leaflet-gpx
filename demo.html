@@ -47,8 +47,8 @@
 
       .gpx .map { border: 1px #888 solid; border-left: none; border-right: none;
         width: 800px; height: 300px; margin: 0; }
-      .gpx ul.info { list-style: none; margin: 0; padding: 0.5em;
-        font-size: smaller; background: #f0f0f0; }
+      .gpx footer { background: #f0f0f0; padding: 0.5em; }
+      .gpx ul.info { list-style: none; margin: 0; padding: 0; font-size: smaller; }
       .gpx ul.info li { color: #666; padding: 2px; }
       .gpx ul.info li span { color: black; }
     </style>
@@ -66,18 +66,25 @@
 
       <footer>
         <ul class="info">
-          <li>Distance: <span class="distance"></span> mi</li>
-          <li>Duration: <span class="duration"></span></li>
-          <li>Pace:     <span class="pace"></span>/mi</li>
-          <li>Avg HR:   <span class="avghr"></span> bpm</li>
+          <li>Distance:  <span class="distance"></span> mi</li>
+          <li>Duration:  <span class="duration"></span></li>
+          <li>Pace:      <span class="pace"></span>/mi</li>
+          <li>Avg HR:    <span class="avghr"></span> bpm</li>
+          <li>Elevation: +<span class="elevation-gain"></span> ft,
+            -<span class="elevation-loss"></span> ft</li>
         </ul>
+        <div class="elevation-graph" style="width: 800px; height: 100px;"></div>
+        <div class="hr-graph" style="width: 800px; height: 100px;"></div>
       </footer>
     </section>
 
     <script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
     <script src="http://cdn.leafletjs.com/leaflet-0.4/leaflet.js"></script>
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
     <script src="gpx.js"></script>
     <script type="application/javascript">
+      google.load('visualization', '1', {packages: ['corechart']});
+
       function display_gpx(art_id) {
         var target = $('#' + art_id);
         var url = $('.map', target).attr('data-gpx-source');
@@ -98,10 +105,48 @@
           $('.start', target).text(
             gpx.get_start_time().toDateString() + ', ' +
             gpx.get_start_time().toLocaleTimeString());
-          $('.distance', target).text(gpx.get_distance_in_miles().toFixed(2));
+          $('.distance', target).text(gpx.get_distance_imp().toFixed(2));
           $('.duration', target).text(gpx.get_duration_string(gpx.get_moving_time()));
-          $('.pace', target).text(gpx.get_duration_string(gpx.get_moving_pace_in_miles(), true));
+          $('.pace', target).text(gpx.get_duration_string(gpx.get_moving_pace_imp(), true));
           $('.avghr', target).text(gpx.get_average_hr());
+          $('.elevation-gain', target).text(gpx.to_ft(gpx.get_elevation_gain()).toFixed(0));
+          $('.elevation-loss', target).text(gpx.to_ft(gpx.get_elevation_loss()).toFixed(0));
+
+          function draw_elevation() {
+            var data = new google.visualization.DataTable();
+            data.addColumn({type: 'number', role: 'domain', label: 'Distance'});
+            data.addColumn({type: 'number', role: 'data', label: 'Elevation'});
+            data.addColumn({type: 'string', role: 'tooltip'});
+            data.addRows(gpx.get_elevation_data_imp());
+
+            new google.visualization.LineChart($('.elevation-graph', target)[0])
+              .draw(data,
+                { curveType: 'function', width: 780, height: 100,
+                  backgroundColor: '#f0f0f0',
+                  chartArea: {width: 720},
+                  legend: {position: 'none'},
+                  hAxis: {format: '#.##', gridlines: {count: 10}, minorGridLines: {count: 2}},
+                });
+          }
+          function draw_heartrate() {
+            var data = new google.visualization.DataTable();
+            data.addColumn({type: 'number', role: 'domain', label: 'Distance'});
+            data.addColumn({type: 'number', role: 'data', label: 'Heart rate'});
+            data.addColumn({type: 'string', role: 'tooltip'});
+            data.addRows(gpx.get_heartrate_data_imp());
+
+            new google.visualization.LineChart($('.hr-graph', target)[0])
+              .draw(data,
+                { curveType: 'function', width: 780, height: 100,
+                  backgroundColor: '#f0f0f0',
+                  chartArea: {width: 720},
+                  legend: {position: 'none'},
+                  hAxis: {format: '#.##', gridlines: {count: 10}, minorGridLines: {count: 2}},
+                  series: [{color: 'red'}],
+                });
+          }
+          google.setOnLoadCallback(draw_elevation);
+          google.setOnLoadCallback(draw_heartrate);
         }).addTo(map);
       }
 
