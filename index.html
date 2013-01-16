@@ -1,0 +1,139 @@
+<!doctype html>
+
+<!--
+  Copyright (C) 2011-2012 Pavel Shramov
+  Copyright (C) 2013 Maxime Petazzoni <maxime.petazzoni@bulix.org>
+  All Rights Reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+  - Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+
+  - Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<html>
+  <head>
+    <title>leaflet-gpx demo</title>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4/leaflet.css" />
+    <style type="text/css">
+      body { width: 800px; margin: 0 auto; }
+      h1 { font-family: sans-serif; }
+
+      .gpx { border: 5px #aaa solid; border-radius: 5px;
+        box-shadow: 0 0 3px 3px #ccc;
+        width: 800px; margin: 1em auto; }
+
+      .gpx header { padding: 0.5em; }
+      .gpx h3 { margin: 0; padding: 0;
+        font-weight: bold; font-family: Arial, Helvetica, sans-serif; }
+      .gpx .start { font-size: smaller; color: #444; }
+
+      .gpx .map { border: 1px #888 solid; border-left: none; border-right: none;
+        width: 800px; height: 300px; margin: 0; }
+      .gpx footer { background: #f0f0f0; padding: 0.5em; }
+      .gpx ul.info { list-style: none; margin: 0; padding: 0; font-size: smaller; }
+      .gpx ul.info li { color: #666; padding: 2px; display: inline; }
+      .gpx ul.info li span { color: black; }
+      .gpx div.graph { margin: 0 auto; }
+    </style>
+  </head>
+  <body>
+    <section class="gpx" data-gpx-source="demo.gpx" data-map-target="1234-test-map">
+      <header>
+        <h3></h3>
+        <span class="start"></span>
+      </header>
+
+      <article>
+        <div class="map" id="1234-test-map"></div>
+      </article>
+
+      <footer>
+        <ul class="info">
+          <li>Distance:  <span class="distance"></span> mi</li>
+          &mdash; <li>Duration:  <span class="duration"></span></li>
+          &mdash; <li>Pace:      <span class="pace"></span>/mi</li>
+          &mdash; <li>Avg HR:    <span class="avghr"></span> bpm</li>
+          &mdash; <li>Elevation: +<span class="elevation-gain"></span> ft,
+            -<span class="elevation-loss"></span> ft
+            (net: <span class="elevation-net"></span> ft)</li>
+        </ul>
+        <div class="graph elevation-graph"></div>
+        <div class="graph hr-graph"></div>
+      </footer>
+    </section>
+
+    <script src="http://cdn.leafletjs.com/leaflet-0.4/leaflet.js"></script>
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script src="https://github.com/mpetazzoni/leaflet-gpx/raw/master/gpx.js"></script>
+    <script type="application/javascript">
+      google.load('visualization', '1', {packages: ['corechart']});
+
+      function display_gpx(elt) {
+        var url = elt.getAttribute('data-gpx-source');
+        if (!url) {
+          return;
+        }
+
+        var map = L.map(elt.getAttribute('data-map-target'));
+        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: 'Map data &copy; <a href="http://www.osm.org">OpenStreetMap</a>'
+        }).addTo(map);
+
+        new L.GPX(url, {
+          async: true,
+          marker_options: {
+            startIconUrl: 'http://github.com/mpetazzoni/leaflet-gpx/raw/master/pin-icon-start.png',
+            endIconUrl:   'http://github.com/mpetazzoni/leaflet-gpx/raw/master/pin-icon-end.png',
+            shadowUrl:    'http://github.com/mpetazzoni/leaflet-gpx/raw/master/pin-shadow.png',
+          },
+        }).on('loaded', function(e) {
+          var gpx = e.target;
+          map.fitBounds(gpx.getBounds());
+
+          elt.getElementsByTagName('h3')[0].textContent =
+            gpx.get_name();
+          elt.getElementsByClassName('start')[0].textContent =
+            gpx.get_start_time().toDateString() + ', ' +
+            gpx.get_start_time().toLocaleTimeString();
+          elt.getElementsByClassName('distance')[0].textContent =
+            gpx.get_distance_imp().toFixed(2);
+          elt.getElementsByClassName('duration')[0].textContent =
+            gpx.get_duration_string(gpx.get_moving_time());
+          elt.getElementsByClassName('pace')[0].textContent =
+            gpx.get_duration_string(gpx.get_moving_pace_imp(), true);
+          elt.getElementsByClassName('avghr')[0].textContent =
+            gpx.get_average_hr();
+          elt.getElementsByClassName('elevation-gain')[0].textContent =
+            gpx.to_ft(gpx.get_elevation_gain()).toFixed(0);
+          elt.getElementsByClassName('elevation-loss')[0].textContent =
+            gpx.to_ft(gpx.get_elevation_loss()).toFixed(0);
+          elt.getElementsByClassName('elevation-net')[0].textContent =
+            gpx.to_ft(gpx.get_elevation_gain() - gpx.get_elevation_loss()).toFixed(0);
+        }).addTo(map);
+      }
+
+      var maps = document.getElementsByClassName('gpx');
+      for (i = 0; i < maps.length; i++) {
+        display_gpx(maps[i]);
+      }
+    </script>
+  </body>
+</html>
