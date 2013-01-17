@@ -1,7 +1,7 @@
 GPX plugin for Leaflet
 ======================
 
-[Leaflet](http://www.leaflet.org) is a Javascript library for displaying
+[Leaflet](http://www.leafletjs.com) is a Javascript library for displaying
 interactive maps. This plugin, based on the work of [Pavel
 Shramov](http://github.com/shramov) and his
 [leaflet-plugins](http://github.com/shramov/leaflet-plugins), it allows for the
