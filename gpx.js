@@ -247,16 +247,22 @@ L.GPX = L.FeatureGroup.extend({
     var last = null;
 
     for (var i = 0; i < el.length; i++) {
-      var ll = new L.LatLng(
+      var _, ll = new L.LatLng(
         el[i].getAttribute('lat'),
         el[i].getAttribute('lon'));
-      ll.meta = {
-        time: new Date(Date.parse(el[i].getElementsByTagName('time')[0].textContent)),
-        ele: parseFloat(el[i].getElementsByTagName('ele')[0].textContent),
-        hr: null,
-      };
+      ll.meta = { time: null, ele: null, hr: null };
 
-      var _ = el[i].getElementsByTagNameNS('*', 'hr');
+      _ = el[i].getElementsByTagName('time');
+      if (_.length > 0) {
+        ll.meta.time = new Date(Date.parse(_[0].textContent));
+      }
+
+      _ = el[i].getElementsByTagName('ele');
+      if (_.length > 0) {
+        ll.meta.ele = parseFloat(_[0].textContent);
+      }
+
+      _ = el[i].getElementsByTagNameNS('*', 'hr');
       if (_.length > 0) {
         ll.meta.hr = parseInt(_[0].textContent);
         this._info.hr._points.push([this._info.length, ll.meta.hr]);
