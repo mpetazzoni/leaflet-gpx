@@ -50,13 +50,18 @@ var _DEFAULT_MARKER_OPTS = {
   iconAnchor: [16, 45],
   shadowAnchor: [16, 47]
 };
-
+var _DEFAULT_POLYLINE_OPTS = {
+	color:'blue'
+};
 L.GPX = L.FeatureGroup.extend({
   initialize: function(gpx, options) {
     options.max_point_interval = options.max_point_interval || _MAX_POINT_INTERVAL_MS;
     options.marker_options = this._merge_objs(
       _DEFAULT_MARKER_OPTS,
-      options.marker_options || {})
+      options.marker_options || {});
+    options.polyline_options = this._merge_objs(
+      _DEFAULT_POLYLINE_OPTS,
+      options.polyline_options || {});
 
     L.Util.setOptions(this, options);
 
@@ -209,7 +214,7 @@ L.GPX = L.FeatureGroup.extend({
         var coords = this._parse_trkseg(el[i], xml, options, tags[j][1]);
 
         // add track
-        var l = new L.Polyline(coords, options);
+        var l = new L.Polyline(coords, options.polyline_options);
         this.fire('addline', { line: l })
         layers.push(l);
 
