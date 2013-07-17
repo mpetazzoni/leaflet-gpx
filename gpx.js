@@ -188,7 +188,7 @@ L.GPX = L.FeatureGroup.extend({
     req.send(null);
   },
 
-  _parse: function(url, options, async) {
+  _parse: function(input, options, async) {
     var _this = this;
     var cb = function(gpx, options) {
       var layers = _this._parse_gpx_data(gpx, options);
@@ -196,7 +196,14 @@ L.GPX = L.FeatureGroup.extend({
       _this.addLayer(layers);
       _this.fire('loaded');
     }
-    this._load_xml(url, cb, options, async);
+    if (input.indexOf('http') === 0) {
+      this._load_xml(input, cb, options, async);
+    } else {
+      var parser = new DOMParser();
+      setTimeout(function() {
+        cb(parser.parseFromString(input, "text/xml"), options);
+      });
+    }
   },
 
   _parse_gpx_data: function(xml, options) {
