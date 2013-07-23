@@ -34,8 +34,8 @@ L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 Displaying the GPX track is as easy as:
 
 ```javascript
-var url = '...'; // URL to your GPX file
-new L.GPX(url, {async: true}).on('loaded', function(e) {
+var gpx = '...'; // URL to your GPX file or the GPX itself
+new L.GPX(gpx, {async: true}).on('loaded', function(e) {
   map.fitBounds(e.target.getBounds());
 }).addTo(map);
 ```
