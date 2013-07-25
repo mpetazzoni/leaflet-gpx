@@ -196,13 +196,13 @@ L.GPX = L.FeatureGroup.extend({
       _this.addLayer(layers);
       _this.fire('loaded');
     }
-    if (input.indexOf('http') === 0) {
-      this._load_xml(input, cb, options, async);
-    } else {
+    if (input.substr(0)==='<') { // direct XML has to start with a <
       var parser = new DOMParser();
       setTimeout(function() {
         cb(parser.parseFromString(input, "text/xml"), options);
       });
+    } else {
+      this._load_xml(input, cb, options, async);
     }
   },
 
