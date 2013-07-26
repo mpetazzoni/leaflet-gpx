@@ -196,7 +196,7 @@ L.GPX = L.FeatureGroup.extend({
       _this.addLayer(layers);
       _this.fire('loaded');
     }
-    if (input.substr(0)==='<') { // direct XML has to start with a <
+    if (input.substr(0,1)==='<') { // direct XML has to start with a <
       var parser = new DOMParser();
       setTimeout(function() {
         cb(parser.parseFromString(input, "text/xml"), options);
