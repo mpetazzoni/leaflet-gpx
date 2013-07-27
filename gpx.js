@@ -219,6 +219,7 @@ L.GPX = L.FeatureGroup.extend({
       el = xml.getElementsByTagName(tags[j][0]);
       for (i = 0; i < el.length; i++) {
         var coords = this._parse_trkseg(el[i], xml, options, tags[j][1]);
+        if (coords.length === 0) continue;
 
         // add track
         var l = new L.Polyline(coords, options.polyline_options);
