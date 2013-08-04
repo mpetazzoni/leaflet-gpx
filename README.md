@@ -19,6 +19,13 @@ I've put together a complete example as a
 [demo](http://mpetazzoni.github.com/leaflet-gpx/).
 
 
+License
+-------
+
+`leaflet-gpx` is under the *BSD 2-clause license*. Please refer to the
+attached LICENSE file and/or to the copyright header in gpx.js for more
+information.
+
 Usage
 -----
 
