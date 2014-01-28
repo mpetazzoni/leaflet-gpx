@@ -124,3 +124,12 @@ new L.GPX(url, {
   map.fitBounds(e.target.getBounds());
 }).addTo(map);
 ```
+
+Caveats
+-------
+
+ * Distance calculation is relatively accurate, but elevation change
+   calculation is not topographically adjusted, so the total elevation
+   gain/loss/change might appear inaccurate in some situations.
+ * Currently doesn't seem to work in IE8/9. See #9 and #11 for
+   discussion.
