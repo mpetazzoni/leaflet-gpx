@@ -89,6 +89,15 @@ the distance is either in kilometers or in miles and the elevation in meters of
 feet, depending on whether you use the `_imp` variant or not. Heart rate,
 obviously, doesn't change.
 
+You can reload remote gpx file every 5 seconds with:
+```javascript
+var gpxLayer = new L.GPX(gpxFile);
+
+setInterval(function() {
+	gpxLayer.reload();
+},5000);
+```
+
 
 About marker icons
 ------------------
