@@ -334,4 +334,11 @@ L.GPX = L.FeatureGroup.extend({
   _deg2rad: function(deg) {
     return deg * Math.PI / 180;
   },
+
+  //Public methods
+
+  reload: function() {
+	this.clearLayers();
+	this._parse(this._gpx);
+  }
 });
