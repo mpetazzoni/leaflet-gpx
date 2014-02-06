@@ -75,7 +75,7 @@ L.GPX = L.FeatureGroup.extend({
       length: 0.0,
       elevation: {gain: 0.0, loss: 0.0, _points: []},
       hr: {avg: 0, _total: 0, _points: []},
-      duration: {start: null, end: null, moving: 0, total: 0},
+      duration: {start: null, end: null, moving: 0, total: 0, _points: []},
     };
 
     if (gpx) {
@@ -123,6 +123,17 @@ L.GPX = L.FeatureGroup.extend({
 
   get_moving_pace:     function() { return this.get_moving_time() / this.m_to_km(this.get_distance()); },
   get_moving_pace_imp: function() { return this.get_moving_time() / this.get_distance_imp(); },
+  
+  get_moving_speed:    function() { return this.get_distance() / (this.get_moving_time() / _SECOND_IN_MILLIS); },
+  get_moving_speed_data: function() {
+    var last = null;
+    return this._info.duration._points.map(
+      function(p) {
+        var range = !last ? p[0] : p[0] - last[0];
+        last = p;
+        return { distance: p[0], speed: p[1] > 0 ? range / (p[1] / _SECOND_IN_MILLIS) : 0 };
+      });
+  },
 
   get_elevation_gain:     function() { return this._info.elevation.gain; },
   get_elevation_loss:     function() { return this._info.elevation.loss; },
@@ -299,6 +310,7 @@ L.GPX = L.FeatureGroup.extend({
         t = Math.abs(ll.meta.time - last.meta.time);
         this._info.duration.total += t;
         if (t < options.max_point_interval) this._info.duration.moving += t;
+        this._info.duration._points.push([this._info.length, t]);
       } else {
         this._info.duration.start = ll.meta.time;
       }
