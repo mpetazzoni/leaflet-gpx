@@ -107,6 +107,7 @@ L.GPX = L.FeatureGroup.extend({
     return s;
   },
 
+  // Public methods
   to_miles:            function(v) { return v / 1.60934; },
   to_ft:               function(v) { return v * 3.28084; },
   m_to_km:             function(v) { return v / 1000; },
@@ -157,8 +158,12 @@ L.GPX = L.FeatureGroup.extend({
       });
   },
 
-  // Private methods
+  reload: function() {
+    this.clearLayers();
+    this._parse(this._gpx, this.options, this.options.async);
+  },
 
+  // Private methods
   _merge_objs: function(a, b) {
     var _ = {};
     for (var attr in a) { _[attr] = a[attr]; }
@@ -333,12 +338,5 @@ L.GPX = L.FeatureGroup.extend({
 
   _deg2rad: function(deg) {
     return deg * Math.PI / 180;
-  },
-
-  //Public methods
-
-  reload: function() {
-	this.clearLayers();
-	this._parse(this._gpx, this.options, this.options.async);
   }
 });
