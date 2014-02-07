@@ -60,6 +60,7 @@ so in the 'loaded' event handler, calling one of the following methods on the
 * `get_moving_time()`: returns the moving time, in milliseconds
 * `get_total_time()`: returns the total track time, in milliseconds
 * `get_moving_pace()`: returns the average moving pace in milliseconds per km
+* `get_moving_speed()`: returns the average moving speed in km per hour
 * `get_elevation_gain()`: returns the cumulative elevation gain, in meters
 * `get_elevation_loss()`: returns the cumulative elevation loss, in meters
 * `get_average_hr()`: returns the average heart rate (if available)
@@ -68,8 +69,10 @@ If you're not a fan of the metric system, you also have the following methods
 at your disposal:
 
 * `get_distance_imp()`: returns the total track distance in miles
-* `get_moving_pace_imp()`: returns the average moving pace in milliseconds per
-  mile
+* `get_moving_pace_imp()`: returns the average moving pace in milliseconds per 
+  hour
+* `get_moving_speed()`: returns the average moving pace in miles per
+  hour
 
 The reason why these methods return milliseconds is that you have at your
 disposal a nice helper method to format a duration in milliseconds into a cool

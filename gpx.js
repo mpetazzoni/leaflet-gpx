@@ -123,6 +123,9 @@ L.GPX = L.FeatureGroup.extend({
 
   get_moving_pace:     function() { return this.get_moving_time() / this.m_to_km(this.get_distance()); },
   get_moving_pace_imp: function() { return this.get_moving_time() / this.get_distance_imp(); },
+  
+  get_moving_speed:    function() { return this.m_to_km(this.get_distance()) / (this.get_moving_time() / (3600 * 1000)) ; },
+  get_moving_speed_imp:function() { return this.to_miles(this.m_to_km(this.get_distance())) / (this.get_moving_time() / (3600 * 1000)) ; },
 
   get_elevation_gain:     function() { return this._info.elevation.gain; },
   get_elevation_loss:     function() { return this._info.elevation.loss; },
