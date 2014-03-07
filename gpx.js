@@ -114,6 +114,10 @@ L.GPX = L.FeatureGroup.extend({
   m_to_mi:             function(v) { return v / 1609.34; },
 
   get_name:            function() { return this._info.name; },
+  get_desc:            function() { return this._info.desc; },
+  get_author:          function() { return this._info.author; },
+  get_copyright:       function() { return this._info.copyright; },
+  get_desc:            function() { return this._info.desc; },
   get_distance:        function() { return this._info.length; },
   get_distance_imp:    function() { return this.to_miles(this.m_to_km(this.get_distance())); },
 
@@ -225,6 +229,18 @@ L.GPX = L.FeatureGroup.extend({
     var name = xml.getElementsByTagName('name');
     if (name.length > 0) {
       this._info.name = name[0].textContent;
+    }
+    var desc = xml.getElementsByTagName('desc');
+    if (desc.length > 0) {
+      this._info.desc = desc[0].textContent;
+    }
+    var author = xml.getElementsByTagName('author');
+    if (author.length > 0) {
+      this._info.author = author[0].textContent;
+    }
+    var copyright = xml.getElementsByTagName('copyright');
+    if (copyright.length > 0) {
+      this._info.copyright = copyright[0].textContent;
     }
 
     for (j = 0; j < tags.length; j++) {
