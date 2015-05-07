@@ -47,6 +47,18 @@ new L.GPX(gpx, {async: true}).on('loaded', function(e) {
 }).addTo(map);
 ```
 
+You can change the GPX track's appearance with a `polyline_options` object in
+the second argument of the constructor. Available options are listed in the
+[Leaflet documentation](http://leafletjs.com/reference.html#polyline).
+
+Some GPX tracks contain the actual route/track twice, both the `<trk>` and
+`<rte>` elements are used. You can tell `leaflet-gpx` which tag to use or to
+use both (which is the default setting for backwards compatibility) with the
+`gpx_options` object in the second argument of the constructor. The member
+`parseElements` controls this behavior, it should be an array that contains
+`'route'` and/or `'track'`.
+
+
 If you want to display additional information about the GPX track, you can do
 so in the 'loaded' event handler, calling one of the following methods on the
 `GPX` object `e.target`:
