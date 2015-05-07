@@ -53,6 +53,9 @@ var _DEFAULT_MARKER_OPTS = {
 var _DEFAULT_POLYLINE_OPTS = {
 	color:'blue'
 };
+var _DEFAULT_GPX_OPTS = {
+  parseElements: ['track', 'route']
+};
 L.GPX = L.FeatureGroup.extend({
   initialize: function(gpx, options) {
     options.max_point_interval = options.max_point_interval || _MAX_POINT_INTERVAL_MS;
@@ -62,6 +65,9 @@ L.GPX = L.FeatureGroup.extend({
     options.polyline_options = this._merge_objs(
       _DEFAULT_POLYLINE_OPTS,
       options.polyline_options || {});
+    options.gpx_options = this._merge_objs(
+      _DEFAULT_GPX_OPTS,
+      options.gpx_options || {});
 
     L.Util.setOptions(this, options);
 
@@ -220,7 +226,14 @@ L.GPX = L.FeatureGroup.extend({
 
   _parse_gpx_data: function(xml, options) {
     var j, i, el, layers = [];
-    var tags = [['rte','rtept'], ['trkseg','trkpt']];
+    var tags = [];
+    var parseElements = options.gpx_options.parseElements;
+    if(parseElements.indexOf('route') > -1) {
+      tags.push(['rte','rtept']);
+    }
+    if(parseElements.indexOf('track') > -1) {
+      tags.push(['trkseg','trkpt']);
+    }
 
     var name = xml.getElementsByTagName('name');
     if (name.length > 0) {
