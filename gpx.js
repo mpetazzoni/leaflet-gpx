@@ -36,6 +36,8 @@
  * rendered on the Leaflet map.
  */
 
+/** JvdB: downloaded on 16.aug.2015 from https://rawgit.com/mpetazzoni/leaflet-gpx/master/gpx.js */
+
 var _MAX_POINT_INTERVAL_MS = 15000;
 var _SECOND_IN_MILLIS = 1000;
 var _MINUTE_IN_MILLIS = 60 * _SECOND_IN_MILLIS;
@@ -45,6 +47,8 @@ var _DEFAULT_MARKER_OPTS = {
   startIconUrl: 'pin-icon-start.png',
   endIconUrl: 'pin-icon-end.png',
   shadowUrl: 'pin-shadow.png',
+  wptIconUrls : {
+  },
   iconSize: [33, 50],
   shadowSize: [50, 50],
   iconAnchor: [16, 45],
@@ -54,7 +58,7 @@ var _DEFAULT_POLYLINE_OPTS = {
 	color:'blue'
 };
 var _DEFAULT_GPX_OPTS = {
-  parseElements: ['track', 'route']
+  parseElements: ['track', 'route', 'waypoint']
 };
 L.GPX = L.FeatureGroup.extend({
   initialize: function(gpx, options) {
@@ -81,7 +85,7 @@ L.GPX = L.FeatureGroup.extend({
       length: 0.0,
       elevation: {gain: 0.0, loss: 0.0, _points: []},
       hr: {avg: 0, _total: 0, _points: []},
-      duration: {start: null, end: null, moving: 0, total: 0},
+      duration: {start: null, end: null, moving: 0, total: 0}
     };
 
     if (gpx) {
@@ -134,7 +138,7 @@ L.GPX = L.FeatureGroup.extend({
 
   get_moving_pace:     function() { return this.get_moving_time() / this.m_to_km(this.get_distance()); },
   get_moving_pace_imp: function() { return this.get_moving_time() / this.get_distance_imp(); },
-  
+
   get_moving_speed:    function() { return this.m_to_km(this.get_distance()) / (this.get_moving_time() / (3600 * 1000)) ; },
   get_moving_speed_imp:function() { return this.to_miles(this.m_to_km(this.get_distance())) / (this.get_moving_time() / (3600 * 1000)) ; },
 
@@ -286,6 +290,47 @@ L.GPX = L.FeatureGroup.extend({
     }
 
     this._info.hr.avg = Math.round(this._info.hr._total / this._info.hr._points.length);
+
+    /* JvdB parse WayPoints e.g.
+    *   <wpt lat="52.390606999397278" lon="4.933056039735675">
+         <ele>8.832767</ele>
+         <time>2015-08-16T11:34:54Z</time>
+         <name>START3</name>
+         <sym>Pin, Blue</sym>
+         <type>user</type>
+        </wpt>
+    */
+    if (parseElements.indexOf('waypoint') > -1) {
+        el = xml.getElementsByTagName('wpt');
+        for (i = 0; i < el.length; i++) {
+          var ll = new L.LatLng(
+              el[i].getAttribute('lat'),
+              el[i].getAttribute('lon'));
+
+            var nameEl = el[i].getElementsByTagName('name');
+            name = '';
+            if (nameEl.length > 0) {
+              name = nameEl[0].textContent;
+            }
+
+            var symEl = el[i].getElementsByTagName('sym');
+            var symKey = '';
+            if (symEl.length > 0) {
+                symKey = symEl[0].textContent;
+            }
+
+          // add WayPointMarker, based on "sym" element if avail and icon is configured
+          var symIcon = options.marker_options.wptIconUrls[symKey];
+          var marker = new L.Marker(ll, {
+              clickable: true,
+              title: name,
+              icon: symIcon ? new L.GPXTrackIcon({iconUrl: symIcon}) : new L.Icon.Default()
+          });
+            marker.bindPopup("<b>" + name + "</b>").openPopup();
+          this.fire('addpoint', {point: marker});
+          layers.push(marker);
+        }
+    }
 
     if (!layers.length) return;
     var layer = layers[0];
