@@ -148,6 +148,34 @@ new L.GPX(url, {
   map.fitBounds(e.target.getBounds());
 }).addTo(map);
 ```
+About waypoints
+---------------
+
+By default `gpx.js` will parse Waypoints from a GPX file. This may also be steered via the value `waypoint` in `gpx_options`, e.g. `parseElements: ['track', 'route', 'waypoint']`. 
+
+Waypoint icons: by default the Leaflet default icon is shown for each waypoint. Via the `L.GPX` constructor option: `marker_options.wptIconUrls` one can supply mappings from the Waypoint "SYM" name to a user-supplied icon file or URL. See the example below.
+
+```javascript
+
+new L.GPX(app.params.gpx_url, {
+    async: true,
+    marker_options: {
+		.
+		.
+        wptIconUrls: {
+            'Geocache Found': 'img/gpx/geocache.png',
+            'Park': 'img/gpx/tree.png'
+        },
+		.
+		.
+        shadowUrl: 'http://github.com/mpetazzoni/leaflet-gpx/raw/master/pin-shadow.png'
+    }
+}).on('loaded', function (e) {
+        var gpx = e.target;
+        map.fitBounds(gpx.getBounds());
+    }).addTo(map);
+}
+```
 
 Caveats
 -------
