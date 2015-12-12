@@ -268,21 +268,37 @@ L.GPX = L.FeatureGroup.extend({
         layers.push(l);
 
         if (options.marker_options.startIconUrl) {
-          // add start pin
+          if (options.marker_options.startIconUrl == "custom") {
+            var p = new L.Marker(coords[0], {
+            clickable: false,
+              icon: options.marker_options.startIconCustom
+          });
+          } else {
+            // add start pin
           var p = new L.Marker(coords[0], {
             clickable: false,
               icon: new L.GPXTrackIcon({iconUrl: options.marker_options.startIconUrl})
           });
+
+          }
           this.fire('addpoint', { point: p });
           layers.push(p);
+
         }
 
         if (options.marker_options.endIconUrl) {
-          // add end pin
-          p = new L.Marker(coords[coords.length-1], {
-            clickable: false,
-            icon: new L.GPXTrackIcon({iconUrl: options.marker_options.endIconUrl})
-          });
+            if (options.marker_options.endIconUrl == "custom") {
+               var p = new L.Marker(coords[coords.length - 1], {
+                clickable: false,
+                icon: options.marker_options.endIconCustom
+            });
+            } else {
+                // add end pin
+                p = new L.Marker(coords[coords.length - 1], {
+                    clickable: false,
+                    icon: new L.GPXTrackIcon({iconUrl: options.marker_options.endIconUrl})
+                });
+            }
           this.fire('addpoint', { point: p });
           layers.push(p);
         }
