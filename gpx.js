@@ -127,7 +127,6 @@ L.GPX = L.FeatureGroup.extend({
   get_desc:            function() { return this._info.desc; },
   get_author:          function() { return this._info.author; },
   get_copyright:       function() { return this._info.copyright; },
-  get_desc:            function() { return this._info.desc; },
   get_distance:        function() { return this._info.length; },
   get_distance_imp:    function() { return this.to_miles(this.m_to_km(this.get_distance())); },
 
