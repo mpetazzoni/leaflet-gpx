@@ -83,7 +83,7 @@ L.GPX = L.FeatureGroup.extend({
     this._info = {
       name: null,
       length: 0.0,
-      elevation: {gain: 0.0, loss: 0.0, max: 0.0, min: 90000.0, _points: []},
+      elevation: {gain: 0.0, loss: 0.0, max: 0.0, min: Infinity, _points: []},
       hr: {avg: 0, _total: 0, _points: []},
       duration: {start: null, end: null, moving: 0, total: 0}
     };
