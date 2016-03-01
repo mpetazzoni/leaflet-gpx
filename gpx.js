@@ -83,7 +83,7 @@ L.GPX = L.FeatureGroup.extend({
     this._info = {
       name: null,
       length: 0.0,
-      elevation: {gain: 0.0, loss: 0.0, _points: []},
+      elevation: {gain: 0.0, loss: 0.0, max: 0.0, min: 90000.0, _points: []},
       hr: {avg: 0, _total: 0, _points: []},
       duration: {start: null, end: null, moving: 0, total: 0}
     };
@@ -160,6 +160,10 @@ L.GPX = L.FeatureGroup.extend({
         function(a, b) { return a.toFixed(2) + ' mi, ' + b.toFixed(0) + ' ft'; });
       });
   },
+  get_elevation_max:      function() { return this._info.elevation.max; },
+  get_elevation_min:      function() { return this._info.elevation.min; },
+  get_elevation_max_imp:  function() { return this.to_miles(this.m_to_km(this.get_elevation_max())); },
+  get_elevation_min_imp:  function() { return this.to_miles(this.m_to_km(this.get_elevation_min())); },
 
   get_average_hr:         function() { return this._info.hr.avg; },
   get_heartrate_data:     function() {
@@ -369,6 +373,12 @@ L.GPX = L.FeatureGroup.extend({
         this._info.hr._points.push([this._info.length, ll.meta.hr]);
         this._info.hr._total += ll.meta.hr;
       }
+
+      if(ll.meta.ele > this._info.elevation.max)
+        this._info.elevation.max = ll.meta.ele;
+
+      if(ll.meta.ele < this._info.elevation.min)
+        this._info.elevation.min = ll.meta.ele;
 
       this._info.elevation._points.push([this._info.length, ll.meta.ele]);
       this._info.duration.end = ll.meta.time;
