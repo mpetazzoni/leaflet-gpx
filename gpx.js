@@ -302,6 +302,7 @@ L.GPX = L.FeatureGroup.extend({
          <ele>8.832767</ele>
          <time>2015-08-16T11:34:54Z</time>
          <name>START3</name>
+         <desc>Some point</desc>
          <sym>Pin, Blue</sym>
          <type>user</type>
         </wpt>
@@ -319,6 +320,12 @@ L.GPX = L.FeatureGroup.extend({
               name = nameEl[0].textContent;
             }
 
+            var descEl = el[i].getElementsByTagName('desc');
+            desc = '';
+            if (descEl.length > 0) {
+              desc = descEl[0].textContent;
+            }
+
             var symEl = el[i].getElementsByTagName('sym');
             var symKey = '';
             if (symEl.length > 0) {
@@ -332,7 +339,7 @@ L.GPX = L.FeatureGroup.extend({
               title: name,
               icon: symIcon ? new L.GPXTrackIcon({iconUrl: symIcon}) : new L.Icon.Default()
           });
-            marker.bindPopup("<b>" + name + "</b>").openPopup();
+            marker.bindPopup("<b>" + name + "</b>" + (desc.length > 0 ? '<br>' + desc : '')).openPopup();
           this.fire('addpoint', {point: marker});
           layers.push(marker);
         }
