@@ -42,6 +42,7 @@ var _MAX_POINT_INTERVAL_MS = 15000;
 var _SECOND_IN_MILLIS = 1000;
 var _MINUTE_IN_MILLIS = 60 * _SECOND_IN_MILLIS;
 var _HOUR_IN_MILLIS = 60 * _MINUTE_IN_MILLIS;
+var _DAY_IN_MILLIS = 24 * _HOUR_IN_MILLIS;
 
 var _DEFAULT_MARKER_OPTS = {
   startIconUrl: 'pin-icon-start.png',
@@ -95,6 +96,11 @@ L.GPX = L.FeatureGroup.extend({
 
   get_duration_string: function(duration, hidems) {
     var s = '';
+
+    if (duration >= _DAY_IN_MILLIS) {
+      s += Math.floor(duration / _DAY_IN_MILLIS) + 'd ';
+      duration = duration % _DAY_IN_MILLIS;
+    }
 
     if (duration >= _HOUR_IN_MILLIS) {
       s += Math.floor(duration / _HOUR_IN_MILLIS) + ':';
