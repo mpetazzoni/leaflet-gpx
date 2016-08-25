@@ -152,6 +152,8 @@ L.GPX = L.FeatureGroup.extend({
 
   get_elevation_gain:     function() { return this._info.elevation.gain; },
   get_elevation_loss:     function() { return this._info.elevation.loss; },
+  get_elevation_gain_imp: function() { return this.to_ft(this.get_elevation_gain()); },
+  get_elevation_loss_imp: function() { return this.to_ft(this.get_elevation_loss()); },
   get_elevation_data:     function() {
     var _this = this;
     return this._info.elevation._points.map(
@@ -168,8 +170,8 @@ L.GPX = L.FeatureGroup.extend({
   },
   get_elevation_max:      function() { return this._info.elevation.max; },
   get_elevation_min:      function() { return this._info.elevation.min; },
-  get_elevation_max_imp:  function() { return this.to_miles(this.m_to_km(this.get_elevation_max())); },
-  get_elevation_min_imp:  function() { return this.to_miles(this.m_to_km(this.get_elevation_min())); },
+  get_elevation_max_imp:  function() { return this.to_ft(this.get_elevation_max()); },
+  get_elevation_min_imp:  function() { return this.to_ft(this.get_elevation_min()); },
 
   get_average_hr:         function() { return this._info.hr.avg; },
   get_heartrate_data:     function() {
