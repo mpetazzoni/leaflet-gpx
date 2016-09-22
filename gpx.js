@@ -53,7 +53,8 @@ var _DEFAULT_MARKER_OPTS = {
   iconSize: [33, 50],
   shadowSize: [50, 50],
   iconAnchor: [16, 45],
-  shadowAnchor: [16, 47]
+  shadowAnchor: [16, 47],
+  clickable: false
 };
 var _DEFAULT_POLYLINE_OPTS = {
 	color:'blue'
@@ -282,20 +283,20 @@ L.GPX = L.FeatureGroup.extend({
         if (options.marker_options.startIconUrl) {
           // add start pin
           var p = new L.Marker(coords[0], {
-            clickable: false,
+            clickable: options.marker_options.clickable,
               icon: new L.GPXTrackIcon({iconUrl: options.marker_options.startIconUrl})
           });
-          this.fire('addpoint', { point: p });
+          this.fire('addpoint', { point: p, point_type: "start" });
           layers.push(p);
         }
 
         if (options.marker_options.endIconUrl) {
           // add end pin
           p = new L.Marker(coords[coords.length-1], {
-            clickable: false,
+            clickable: options.marker_options.clickable,
             icon: new L.GPXTrackIcon({iconUrl: options.marker_options.endIconUrl})
           });
-          this.fire('addpoint', { point: p });
+          this.fire('addpoint', { point: p, point_type: "end" });
           layers.push(p);
         }
       }
@@ -346,7 +347,7 @@ L.GPX = L.FeatureGroup.extend({
               icon: symIcon ? new L.GPXTrackIcon({iconUrl: symIcon}) : new L.Icon.Default()
           });
             marker.bindPopup("<b>" + name + "</b>" + (desc.length > 0 ? '<br>' + desc : '')).openPopup();
-          this.fire('addpoint', {point: marker});
+          this.fire('addpoint', {point: marker, point_type: "waypoint"});
           layers.push(marker);
         }
     }
