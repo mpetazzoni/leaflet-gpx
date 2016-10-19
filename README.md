@@ -1,6 +1,8 @@
 GPX plugin for Leaflet
 ======================
 
+[![CDNJS](https://img.shields.io/cdnjs/v/leaflet-gpx.svg)](https://cdnjs.com/libraries/leaflet-gpx)
+
 [Leaflet](http://www.leafletjs.com) is a Javascript library for displaying
 interactive maps. This plugin, based on the work of [Pavel
 Shramov](http://github.com/shramov) and his
