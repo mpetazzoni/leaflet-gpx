@@ -38,6 +38,8 @@
 
 /** JvdB: downloaded on 16.aug.2015 from https://rawgit.com/mpetazzoni/leaflet-gpx/master/gpx.js */
 
+var L = global.L || require('leaflet');
+
 var _MAX_POINT_INTERVAL_MS = 15000;
 var _SECOND_IN_MILLIS = 1000;
 var _MINUTE_IN_MILLIS = 60 * _SECOND_IN_MILLIS;
@@ -445,3 +447,9 @@ L.GPX = L.FeatureGroup.extend({
     return deg * Math.PI / 180;
   }
 });
+
+if (typeof module === 'object' && typeof module.exports === 'object') {
+	module.exports = L;
+} else if (typeof define === 'function' && define.amd) {
+	define(L);
+}
