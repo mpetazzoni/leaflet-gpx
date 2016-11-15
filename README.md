@@ -76,6 +76,8 @@ so in the 'loaded' event handler, calling one of the following methods on the
 * `get_moving_pace()`: returns the average moving pace in milliseconds per km
 * `get_moving_speed()`: returns the average moving speed in km per hour
 * `get_total_speed()`: returns the average total speed in km per hour
+* `get_elevation_min()`: returns the lowest elevation, in meters
+* `get_elevation_max()`: returns the highest elevation, in meters
 * `get_elevation_gain()`: returns the cumulative elevation gain, in meters
 * `get_elevation_loss()`: returns the cumulative elevation loss, in meters
 * `get_average_hr()`: returns the average heart rate (if available)
@@ -84,10 +86,14 @@ If you're not a fan of the metric system, you also have the following methods
 at your disposal:
 
 * `get_distance_imp()`: returns the total track distance in miles
-* `get_moving_pace_imp()`: returns the average moving pace in milliseconds per 
+* `get_moving_pace_imp()`: returns the average moving pace in milliseconds per
   hour
 * `get_moving_speed_imp()`: returns the average moving speed in miles per hour
 * `get_total_speed_imp()`: returns the average total speed in miles per hour
+* `get_elevation_min_imp()`: returns the lowest elevation, in feet
+* `get_elevation_max_imp()`: returns the highest elevation, in feet
+* `get_elevation_gain_imp()`: returns the cumulative elevation gain, in feet
+* `get_elevation_loss_imp()`: returns the cumulative elevation loss, in feet
 
 The reason why these methods return milliseconds is that you have at your
 disposal a nice helper method to format a duration in milliseconds into a cool
@@ -151,40 +157,41 @@ new L.GPX(url, {
   map.fitBounds(e.target.getBounds());
 }).addTo(map);
 ```
+
 About waypoints
 ---------------
 
-By default `gpx.js` will parse Waypoints from a GPX file. This may also be steered via the value `waypoint` in `gpx_options`, e.g. `parseElements: ['track', 'route', 'waypoint']`. 
+By default `gpx.js` will parse Waypoints from a GPX file. This may also
+be steered via the value `waypoint` in `gpx_options`, e.g.
+`parseElements: ['track', 'route', 'waypoint']`.
 
-Waypoint icons: by default the Leaflet default icon is shown for each waypoint. Via the `L.GPX` constructor option: `marker_options.wptIconUrls` one can supply mappings from the Waypoint "SYM" name to a user-supplied icon file or URL. See the example below.
+Waypoint icons: by default the Leaflet default icon is shown for each
+waypoint. Via the `L.GPX` constructor option:
+`marker_options.wptIconUrls` one can supply mappings from the Waypoint
+"SYM" name to a user-supplied icon file or URL. See the example below.
 
 ```javascript
-
 new L.GPX(app.params.gpx_url, {
-    async: true,
-    marker_options: {
-		.
-		.
-        wptIconUrls: {
-            'Geocache Found': 'img/gpx/geocache.png',
-            'Park': 'img/gpx/tree.png'
-        },
-		.
-		.
-        shadowUrl: 'http://github.com/mpetazzoni/leaflet-gpx/raw/master/pin-shadow.png'
-    }
+  async: true,
+  marker_options: {
+    wptIconUrls: {
+      'Geocache Found': 'img/gpx/geocache.png',
+      'Park': 'img/gpx/tree.png'
+    },
+    ...
+    shadowUrl: 'http://github.com/mpetazzoni/leaflet-gpx/raw/master/pin-shadow.png'
+  }
 }).on('loaded', function (e) {
-        var gpx = e.target;
-        map.fitBounds(gpx.getBounds());
-    }).addTo(map);
-}
+  var gpx = e.target;
+  map.fitBounds(gpx.getBounds());
+}).addTo(map);
 ```
 
 Caveats
 -------
 
- * Distance calculation is relatively accurate, but elevation change
-   calculation is not topographically adjusted, so the total elevation
-   gain/loss/change might appear inaccurate in some situations.
- * Currently doesn't seem to work in IE8/9. See #9 and #11 for
-   discussion.
+* Distance calculation is relatively accurate, but elevation change
+  calculation is not topographically adjusted, so the total elevation
+  gain/loss/change might appear inaccurate in some situations.
+* Currently doesn't seem to work in IE8/9. See #9 and #11 for
+  discussion.
