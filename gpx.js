@@ -36,9 +36,7 @@
  * rendered on the Leaflet map.
  */
 
-/** JvdB: downloaded on 16.aug.2015 from https://rawgit.com/mpetazzoni/leaflet-gpx/master/gpx.js */
-
-var L = global.L || require('leaflet');
+var L = L || require('leaflet');
 
 var _MAX_POINT_INTERVAL_MS = 15000;
 var _SECOND_IN_MILLIS = 1000;
@@ -248,11 +246,12 @@ L.GPX = L.FeatureGroup.extend({
   _parse_gpx_data: function(xml, options) {
     var j, i, el, layers = [];
     var tags = [];
+
     var parseElements = options.gpx_options.parseElements;
-    if(parseElements.indexOf('route') > -1) {
+    if (parseElements.indexOf('route') > -1) {
       tags.push(['rte','rtept']);
     }
-    if(parseElements.indexOf('track') > -1) {
+    if (parseElements.indexOf('track') > -1) {
       tags.push(['trkseg','trkpt']);
     }
 
@@ -290,7 +289,7 @@ L.GPX = L.FeatureGroup.extend({
             clickable: options.marker_options.clickable,
               icon: new L.GPXTrackIcon({iconUrl: options.marker_options.startIconUrl})
           });
-          this.fire('addpoint', { point: p, point_type: "start" });
+          this.fire('addpoint', { point: p, point_type: 'start' });
           layers.push(p);
         }
 
@@ -300,7 +299,7 @@ L.GPX = L.FeatureGroup.extend({
             clickable: options.marker_options.clickable,
             icon: new L.GPXTrackIcon({iconUrl: options.marker_options.endIconUrl})
           });
-          this.fire('addpoint', { point: p, point_type: "end" });
+          this.fire('addpoint', { point: p, point_type: 'end' });
           layers.push(p);
         }
       }
@@ -308,59 +307,50 @@ L.GPX = L.FeatureGroup.extend({
 
     this._info.hr.avg = Math.round(this._info.hr._total / this._info.hr._points.length);
 
-    /* JvdB parse WayPoints e.g.
-    *   <wpt lat="52.390606999397278" lon="4.933056039735675">
-         <ele>8.832767</ele>
-         <time>2015-08-16T11:34:54Z</time>
-         <name>START3</name>
-         <desc>Some point</desc>
-         <sym>Pin, Blue</sym>
-         <type>user</type>
-        </wpt>
-    */
+    // parse waypoints and add markers for each of them
     if (parseElements.indexOf('waypoint') > -1) {
-        el = xml.getElementsByTagName('wpt');
-        for (i = 0; i < el.length; i++) {
-          var ll = new L.LatLng(
-              el[i].getAttribute('lat'),
-              el[i].getAttribute('lon'));
+      el = xml.getElementsByTagName('wpt');
+      for (i = 0; i < el.length; i++) {
+        var ll = new L.LatLng(
+            el[i].getAttribute('lat'),
+            el[i].getAttribute('lon'));
 
-            var nameEl = el[i].getElementsByTagName('name');
-            name = '';
-            if (nameEl.length > 0) {
-              name = nameEl[0].textContent;
-            }
-
-            var descEl = el[i].getElementsByTagName('desc');
-            desc = '';
-            if (descEl.length > 0) {
-              desc = descEl[0].textContent;
-            }
-
-            var symEl = el[i].getElementsByTagName('sym');
-            var symKey = '';
-            if (symEl.length > 0) {
-                symKey = symEl[0].textContent;
-            }
-
-          // add WayPointMarker, based on "sym" element if avail and icon is configured
-          var symIcon = options.marker_options.wptIconUrls[symKey];
-          var marker = new L.Marker(ll, {
-              clickable: true,
-              title: name,
-              icon: symIcon ? new L.GPXTrackIcon({iconUrl: symIcon}) : new L.Icon.Default()
-          });
-            marker.bindPopup("<b>" + name + "</b>" + (desc.length > 0 ? '<br>' + desc : '')).openPopup();
-          this.fire('addpoint', {point: marker, point_type: "waypoint"});
-          layers.push(marker);
+        var nameEl = el[i].getElementsByTagName('name');
+        var name = '';
+        if (nameEl.length > 0) {
+          name = nameEl[0].textContent;
         }
+
+        var descEl = el[i].getElementsByTagName('desc');
+        var desc = '';
+        if (descEl.length > 0) {
+          desc = descEl[0].textContent;
+        }
+
+        var symEl = el[i].getElementsByTagName('sym');
+        var symKey = '';
+        if (symEl.length > 0) {
+          symKey = symEl[0].textContent;
+        }
+
+        // add WayPointMarker, based on "sym" element if avail and icon is configured
+        var symIcon = options.marker_options.wptIconUrls[symKey];
+        var marker = new L.Marker(ll, {
+          clickable: true,
+          title: name,
+          icon: symIcon ? new L.GPXTrackIcon({iconUrl: symIcon}) : new L.Icon.Default()
+        });
+        marker.bindPopup("<b>" + name + "</b>" + (desc.length > 0 ? '<br>' + desc : '')).openPopup();
+        this.fire('addpoint', { point: marker, point_type: 'waypoint' });
+        layers.push(marker);
+      }
     }
 
-    if (!layers.length) return;
-    var layer = layers[0];
-    if (layers.length > 1)
-      layer = new L.FeatureGroup(layers);
-    return layer;
+    if (layers.length > 1) {
+       return new L.FeatureGroup(layers);
+    } else if (layers.length == 1) {
+      return layers[0];
+    }
   },
 
   _parse_trkseg: function(line, xml, options, tag) {
