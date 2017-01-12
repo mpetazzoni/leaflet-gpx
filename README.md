@@ -31,7 +31,24 @@ information.
 Usage
 -----
 
-Usage is very simple. Let's consider we have a Leaflet map:
+Usage is very simple. First, include the Leaflet.js and Leaflet-GPX
+scripts in your HTML page:
+
+```html
+<html>
+  <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.2/leaflet.css" />
+    <!-- ... -->
+  </head>
+  <body>
+    <!-- ... -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.2/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.2.0/gpx.min.js"></script>
+  </body>
+</html>
+```
+
+Now, let's consider we have a Leaflet map:
 
 ```javascript
 var map = L.map('map');
@@ -40,7 +57,7 @@ L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 ```
 
-Displaying the GPX track is as easy as:
+Displaying a GPX track on it is as easy as:
 
 ```javascript
 var gpx = '...'; // URL to your GPX file or the GPX itself

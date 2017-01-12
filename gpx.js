@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2011-2012 Pavel Shramov
- * Copyright (C) 2013 Maxime Petazzoni <maxime.petazzoni@bulix.org>
+ * Copyright (C) 2013-2017 Maxime Petazzoni <maxime.petazzoni@bulix.org>
  * All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
