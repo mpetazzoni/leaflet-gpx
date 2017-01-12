@@ -57,7 +57,7 @@ var _DEFAULT_MARKER_OPTS = {
   clickable: false
 };
 var _DEFAULT_POLYLINE_OPTS = {
-	color:'blue'
+	color: 'blue'
 };
 var _DEFAULT_GPX_OPTS = {
   parseElements: ['track', 'route', 'waypoint']
@@ -283,21 +283,21 @@ L.GPX = L.FeatureGroup.extend({
         this.fire('addline', { line: l })
         layers.push(l);
 
-        if (options.marker_options.startIconUrl) {
+        if (options.marker_options.startIcon || options.marker_options.startIconUrl) {
           // add start pin
           var p = new L.Marker(coords[0], {
             clickable: options.marker_options.clickable,
-              icon: new L.GPXTrackIcon({iconUrl: options.marker_options.startIconUrl})
+            icon: options.marker_options.startIcon || new L.GPXTrackIcon({iconUrl: options.marker_options.startIconUrl})
           });
           this.fire('addpoint', { point: p, point_type: 'start' });
           layers.push(p);
         }
 
-        if (options.marker_options.endIconUrl) {
+        if (options.marker_options.endIcon || options.marker_options.endIconUrl) {
           // add end pin
           p = new L.Marker(coords[coords.length-1], {
             clickable: options.marker_options.clickable,
-            icon: new L.GPXTrackIcon({iconUrl: options.marker_options.endIconUrl})
+            icon: options.marker_options.endIcon || new L.GPXTrackIcon({iconUrl: options.marker_options.endIconUrl})
           });
           this.fire('addpoint', { point: p, point_type: 'end' });
           layers.push(p);
@@ -334,11 +334,19 @@ L.GPX = L.FeatureGroup.extend({
         }
 
         // add WayPointMarker, based on "sym" element if avail and icon is configured
-        var symIcon = options.marker_options.wptIconUrls[symKey];
+        var symIcon;
+        if (options.marker_options.wptIcons) {
+          symIcon = options.marker_options.wptIcons[symKey];
+        } else if (options.marker_options.wptIconUrls) {
+          symIcon = new L.GPXTrackIcon({iconUrl: options.marker_options.wptIconUrls[symKey]});
+        } else {
+          symIcon = new L.Icon.Default();
+        }
+
         var marker = new L.Marker(ll, {
           clickable: true,
           title: name,
-          icon: symIcon ? new L.GPXTrackIcon({iconUrl: symIcon}) : new L.Icon.Default()
+          icon: symIcon
         });
         marker.bindPopup("<b>" + name + "</b>" + (desc.length > 0 ? '<br>' + desc : '')).openPopup();
         this.fire('addpoint', { point: marker, point_type: 'waypoint' });

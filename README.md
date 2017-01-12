@@ -187,6 +187,34 @@ new L.GPX(app.params.gpx_url, {
 }).addTo(map);
 ```
 
+Custom markers
+--------------
+
+You can also use your own icons/markers if you want to use custom
+markers, for example from `leaflet-awesome-markers`. To specify you own
+markers, set `startIcon`, `endIcon`, and a map of `wptIcons` by waypoint
+symbol (see above). Those should be marker icon objects usable by
+Leaflet as the `icon` property of a `L.Marker` object.
+
+```javascript
+new L.GPX(app.params.gpx_url, {
+  async: true,
+  marker_options: {
+    wptIcons: {
+      'Coffee shop': new L.AwesomeMarkers.icon({
+        icon: 'coffee',
+        prefix: 'fa',
+        markerColor: 'blue',
+        iconColor: 'white'
+      })
+    }
+  }
+}).on('loaded', function (e) {
+  var gpx = e.target;
+  map.fitBounds(gpx.getBounds());
+}).addTo(map);
+```
+
 Caveats
 -------
 
