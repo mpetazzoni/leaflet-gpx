@@ -235,9 +235,13 @@ L.GPX = L.FeatureGroup.extend({
     }
     if (input.substr(0,1)==='<') { // direct XML has to start with a <
       var parser = new DOMParser();
-      setTimeout(function() {
+      if (async) {
+        setTimeout(function() {
+          cb(parser.parseFromString(input, "text/xml"), options);
+        });
+      } else {
         cb(parser.parseFromString(input, "text/xml"), options);
-      });
+      }
     } else {
       this._load_xml(input, cb, options, async);
     }
