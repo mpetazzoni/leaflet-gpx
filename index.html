@@ -90,6 +90,8 @@
           attribution: 'Map data &copy; <a href="http://www.osm.org">OpenStreetMap</a>'
         }).addTo(map);
 
+        var control = L.control.layers(null, null).addTo(map);
+
         new L.GPX(url, {
           async: true,
           marker_options: {
@@ -112,6 +114,8 @@
           _c('elevation-loss').textContent = gpx.to_ft(gpx.get_elevation_loss()).toFixed(0);
           _c('elevation-net').textContent  = gpx.to_ft(gpx.get_elevation_gain()
             - gpx.get_elevation_loss()).toFixed(0);
+
+          control.addOverlay(gpx, gpx.get_name());
         }).addTo(map);
       }
 
