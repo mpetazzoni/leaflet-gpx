@@ -37,13 +37,13 @@ scripts in your HTML page:
 ```html
 <html>
   <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.2/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.css" />
     <!-- ... -->
   </head>
   <body>
     <!-- ... -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.2/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.2.0/gpx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.3.0/gpx.min.js"></script>
   </body>
 </html>
 ```
@@ -182,16 +182,18 @@ By default `gpx.js` will parse Waypoints from a GPX file. This may also
 be steered via the value `waypoint` in `gpx_options`, e.g.
 `parseElements: ['track', 'route', 'waypoint']`.
 
-Waypoint icons: by default the Leaflet default icon is shown for each
-waypoint. Via the `L.GPX` constructor option:
-`marker_options.wptIconUrls` one can supply mappings from the Waypoint
-"SYM" name to a user-supplied icon file or URL. See the example below.
+Waypoint icons: by default the `pin-icon-wpt.png` icon is shown for each
+waypoint. This can be overridden by setting `marker_options.wptIconUrls`
+in the `L.GPX` constructor options, as a mapping from the waypoint "SYM"
+name to a user-supplied icon file or URL. The empty string `''` is used
+by the waypoint tag does not define a "SYM" name. See the example below:
 
 ```javascript
 new L.GPX(app.params.gpx_url, {
   async: true,
   marker_options: {
     wptIconUrls: {
+      '': 'img/gpx/default-waypoint.png',
       'Geocache Found': 'img/gpx/geocache.png',
       'Park': 'img/gpx/tree.png'
     },
