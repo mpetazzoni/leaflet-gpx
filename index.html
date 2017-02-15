@@ -102,7 +102,12 @@
         }).on('loaded', function(e) {
           var gpx = e.target;
           map.fitBounds(gpx.getBounds());
+          control.addOverlay(gpx, gpx.get_name());
 
+          /*
+           * Note: the code below relies on the fact that the demo GPX file is
+           * an actual GPS track with timing and heartrate information.
+           */
           _t('h3').textContent = gpx.get_name();
           _c('start').textContent = gpx.get_start_time().toDateString() + ', '
             + gpx.get_start_time().toLocaleTimeString();
@@ -114,8 +119,6 @@
           _c('elevation-loss').textContent = gpx.to_ft(gpx.get_elevation_loss()).toFixed(0);
           _c('elevation-net').textContent  = gpx.to_ft(gpx.get_elevation_gain()
             - gpx.get_elevation_loss()).toFixed(0);
-
-          control.addOverlay(gpx, gpx.get_name());
         }).addTo(map);
       }
 
