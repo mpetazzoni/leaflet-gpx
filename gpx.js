@@ -340,7 +340,7 @@ L.GPX = L.FeatureGroup.extend({
 
         // add WayPointMarker, based on "sym" element if avail and icon is configured
         var symIcon;
-        if (options.marker_options.wptIcons[symKey]) {
+        if (options.marker_options.wptIcons && options.marker_options.wptIcons[symKey]) {
           symIcon = options.marker_options.wptIcons[symKey];
         } else if (options.marker_options.wptIconUrls[symKey]) {
           symIcon = new L.GPXTrackIcon({iconUrl: options.marker_options.wptIconUrls[symKey]});
