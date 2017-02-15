@@ -342,7 +342,7 @@ L.GPX = L.FeatureGroup.extend({
         var symIcon;
         if (options.marker_options.wptIcons && options.marker_options.wptIcons[symKey]) {
           symIcon = options.marker_options.wptIcons[symKey];
-        } else if (options.marker_options.wptIconUrls[symKey]) {
+        } else if (options.marker_options.wptIconUrls && options.marker_options.wptIconUrls[symKey]) {
           symIcon = new L.GPXTrackIcon({iconUrl: options.marker_options.wptIconUrls[symKey]});
         } else {
           console.log('No icon or icon URL configured for symbol type "' + symKey
