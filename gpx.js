@@ -49,6 +49,7 @@ var _DEFAULT_MARKER_OPTS = {
   endIconUrl: 'pin-icon-end.png',
   shadowUrl: 'pin-shadow.png',
   wptIconUrls : {
+    '': 'pin-icon-wpt.png',
   },
   iconSize: [33, 50],
   shadowSize: [50, 50],
@@ -339,12 +340,14 @@ L.GPX = L.FeatureGroup.extend({
 
         // add WayPointMarker, based on "sym" element if avail and icon is configured
         var symIcon;
-        if (options.marker_options.wptIcons) {
+        if (options.marker_options.wptIcons[symKey]) {
           symIcon = options.marker_options.wptIcons[symKey];
-        } else if (options.marker_options.wptIconUrls) {
+        } else if (options.marker_options.wptIconUrls[symKey]) {
           symIcon = new L.GPXTrackIcon({iconUrl: options.marker_options.wptIconUrls[symKey]});
         } else {
-          symIcon = new L.Icon.Default();
+          console.log('No icon or icon URL configured for symbol type "' + symKey
+            + '"; ignoring waypoint.');
+          continue;
         }
 
         var marker = new L.Marker(ll, {
