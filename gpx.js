@@ -403,7 +403,7 @@ L.GPX = L.FeatureGroup.extend({
         if (options.point_label_options && options.point_label_options.regexMatch && options.point_label_options.regexMatch.test(name)) {
           var marker = new L.Marker(ll, {
             icon: L.divIcon({
-              className: 'circle '+options.point_label_options.regexMatch.lassName,
+              className: 'circle '+options.point_label_options.className,
               iconSize: [15, 15],
               html: '<label>' + _[0].textContent + '</label>'
             })
