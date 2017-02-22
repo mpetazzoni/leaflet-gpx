@@ -280,7 +280,7 @@ L.GPX = L.FeatureGroup.extend({
     for (j = 0; j < tags.length; j++) {
       el = xml.getElementsByTagName(tags[j][0]);
       for (i = 0; i < el.length; i++) {
-        var coords = this._parse_trkseg(el[i], xml, options, tags[j][1]);
+        var coords = this._parse_trkseg(el[i], xml, options, tags[j][1], layers);
         if (coords.length === 0) continue;
 
         // add track
@@ -368,7 +368,7 @@ L.GPX = L.FeatureGroup.extend({
     }
   },
 
-  _parse_trkseg: function(line, xml, options, tag) {
+  _parse_trkseg: function(line, xml, options, tag, layers) {
     var el = line.getElementsByTagName(tag);
     if (!el.length) return [];
     var coords = [];
@@ -395,6 +395,22 @@ L.GPX = L.FeatureGroup.extend({
         ll.meta.hr = parseInt(_[0].textContent);
         this._info.hr._points.push([this._info.length, ll.meta.hr]);
         this._info.hr._total += ll.meta.hr;
+      }
+
+      _ = el[i].getElementsByTagName('name');
+      if (_.length > 0) {
+        var name = _[0].textContent;
+        if (options.point_label_options && options.point_label_options.regexMatch && options.point_label_options.regexMatch.test(name)) {
+          var marker = new L.Marker(ll, {
+            icon: L.divIcon({
+              className: 'circle '+options.point_label_options.regexMatch.lassName,
+              iconSize: [15, 15],
+              html: '<label>' + _[0].textContent + '</label>'
+            })
+          });
+          this.fire('addpoint', { point: marker, point_type: 'waypoint' });
+          layers.push(marker);
+        }
       }
 
       if(ll.meta.ele > this._info.elevation.max)
