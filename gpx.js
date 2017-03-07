@@ -283,6 +283,8 @@ L.GPX = L.FeatureGroup.extend({
         var coords = this._parse_trkseg(el[i], xml, options, tags[j][1]);
         if (coords.length === 0) continue;
 
+	// check if any line styling is set as per http://www.topografix.com/GPX/gpx_style/0/2/ to override polyline_options
+	      
         // add track
         var l = new L.Polyline(coords, options.polyline_options);
         this.fire('addline', { line: l })
