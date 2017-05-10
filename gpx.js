@@ -58,7 +58,7 @@ var _DEFAULT_MARKER_OPTS = {
   clickable: false
 };
 var _DEFAULT_POLYLINE_OPTS = {
-	color: 'blue'
+  color: 'blue'
 };
 var _DEFAULT_GPX_OPTS = {
   parseElements: ['track', 'route', 'waypoint']
@@ -338,15 +338,28 @@ L.GPX = L.FeatureGroup.extend({
           symKey = symEl[0].textContent;
         }
 
-        // add WayPointMarker, based on "sym" element if avail and icon is configured
+        /*
+         * Add waypoint marker based on the waypoint symbol key.
+         *
+         * First look for a configured icon for that symKey. If not found, look
+         * for a configured icon URL for that symKey and build an icon from it.
+         * Otherwise, fall back to the default icon if one was configured, or
+         * finally to the default icon URL.
+         */
+        var wptIcons = options.marker_options.wptIcons;
+        var wptIconUrls = options.marker_options.wptIconUrls;
         var symIcon;
-        if (options.marker_options.wptIcons && options.marker_options.wptIcons[symKey]) {
-          symIcon = options.marker_options.wptIcons[symKey];
-        } else if (options.marker_options.wptIconUrls && options.marker_options.wptIconUrls[symKey]) {
-          symIcon = new L.GPXTrackIcon({iconUrl: options.marker_options.wptIconUrls[symKey]});
+        if (wptIcons && wptIcons[symKey]) {
+          symIcon = wptIcons[symKey];
+        } else if (wptIconUrls && wptIconUrls[symKey]) {
+          symIcon = new L.GPXTrackIcon({iconUrl: wptIconUrls[symKey]});
+        } else if (wptIcons && wptIcons['']) {
+          symIcon = wptIcons[''];
+        } else if (wptIconUrls && wptIconUrls['']) {
+          symIcon = new L.GPXTrackIcon({iconUrl: wptIconUrls['']});
         } else {
           console.log('No icon or icon URL configured for symbol type "' + symKey
-            + '"; ignoring waypoint.');
+            + '", and no fallback configured; ignoring waypoint.');
           continue;
         }
 
@@ -454,7 +467,7 @@ L.GPX = L.FeatureGroup.extend({
 });
 
 if (typeof module === 'object' && typeof module.exports === 'object') {
-	module.exports = L;
+  module.exports = L;
 } else if (typeof define === 'function' && define.amd) {
-	define(L);
+  define(L);
 }
