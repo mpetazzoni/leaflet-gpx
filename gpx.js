@@ -83,13 +83,7 @@ L.GPX = L.FeatureGroup.extend({
 
     this._gpx = gpx;
     this._layers = {};
-    this._info = {
-      name: null,
-      length: 0.0,
-      elevation: {gain: 0.0, loss: 0.0, max: 0.0, min: Infinity, _points: []},
-      hr: {avg: 0, _total: 0, _points: []},
-      duration: {start: null, end: null, moving: 0, total: 0}
-    };
+    this._init_info();
 
     if (gpx) {
       this._parse(gpx, options, this.options.async);
@@ -192,6 +186,7 @@ L.GPX = L.FeatureGroup.extend({
   },
 
   reload: function() {
+    this._init_info();
     this.clearLayers();
     this._parse(this._gpx, this.options, this.options.async);
   },
@@ -208,6 +203,16 @@ L.GPX = L.FeatureGroup.extend({
     var r = [trans1 && trans1(p[0]) || p[0], trans2 && trans2(p[1]) || p[1]];
     r.push(trans_tooltip && trans_tooltip(r[0], r[1]) || (r[0] + ': ' + r[1]));
     return r;
+  },
+
+  _init_info: function() {
+   this._info = {
+        name: null,
+        length: 0.0,
+        elevation: {gain: 0.0, loss: 0.0, max: 0.0, min: Infinity, _points: []},
+        hr: {avg: 0, _total: 0, _points: []},
+        duration: {start: null, end: null, moving: 0, total: 0}
+      };
   },
 
   _load_xml: function(url, cb, options, async) {
