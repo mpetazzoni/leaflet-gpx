@@ -184,6 +184,20 @@ L.GPX = L.FeatureGroup.extend({
         function(a, b) { return a.toFixed(2) + ' mi, ' + b.toFixed(0) + ' bpm'; });
       });
   },
+  get_cadence_data:     function() {
+    var _this = this;
+    return this._info.cad._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_km, null,
+        function(a, b) { return a.toFixed(2) + ' km, ' + b.toFixed(0) + ' rpm'; });
+      });
+  },
+  get_temp_data:     function() {
+    var _this = this;
+    return this._info.atemp._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_km, null,
+        function(a, b) { return a.toFixed(2) + ' km, ' + b.toFixed(0) + ' degrees'; });
+      });
+  },
 
   reload: function() {
     this._init_info();
@@ -211,7 +225,9 @@ L.GPX = L.FeatureGroup.extend({
         length: 0.0,
         elevation: {gain: 0.0, loss: 0.0, max: 0.0, min: Infinity, _points: []},
         hr: {avg: 0, _total: 0, _points: []},
-        duration: {start: null, end: null, moving: 0, total: 0}
+        duration: {start: null, end: null, moving: 0, total: 0},
+        atemp: {avg: 0, _points: []},
+        cad: {avg: 0, _points: []}
       };
   },
 
@@ -413,6 +429,20 @@ L.GPX = L.FeatureGroup.extend({
         ll.meta.hr = parseInt(_[0].textContent);
         this._info.hr._points.push([this._info.length, ll.meta.hr]);
         this._info.hr._total += ll.meta.hr;
+      }
+
+      _ = el[i].getElementsByTagNameNS('*', 'cad');
+      if (_.length > 0) {
+        ll.meta.cad = parseInt(_[0].textContent);
+        this._info.cad._points.push([this._info.length, ll.meta.cad]);
+        this._info.cad._total += ll.meta.cad;
+      }
+
+      _ = el[i].getElementsByTagNameNS('*', 'atemp');
+      if (_.length > 0) {
+        ll.meta.atemp = parseInt(_[0].textContent);
+        this._info.atemp._points.push([this._info.length, ll.meta.atemp]);
+        this._info.atemp._total += ll.meta.atemp;
       }
 
       if(ll.meta.ele > this._info.elevation.max)
