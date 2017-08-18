@@ -126,8 +126,8 @@ You can also get full elevation, heartrate, cadence and temperature data with:
 
 * `get_elevation_data()` and `get_elevation_data_imp()`
 * `get_heartrate_data()` and `get_heartrate_data_imp()`
-* `get_cadence_data()`
-* `get_temp_data()`
+* `get_cadence_data()` and `get_cadence_data_imp()`
+* `get_temp_data()` and `get_temp_data_imp()`
 
 These methods all return an array of points `[distance, value, tooltip]` where
 the distance is either in kilometers or in miles and the elevation in meters or
