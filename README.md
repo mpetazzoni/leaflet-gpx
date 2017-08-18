@@ -98,6 +98,8 @@ so in the 'loaded' event handler, calling one of the following methods on the
 * `get_elevation_gain()`: returns the cumulative elevation gain, in meters
 * `get_elevation_loss()`: returns the cumulative elevation loss, in meters
 * `get_average_hr()`: returns the average heart rate (if available)
+* `get_average_cadence()`: returns the average cadence (if available)
+* `get_average_temp()`: returns the average of the temperature (if available)
 
 If you're not a fan of the metric system, you also have the following methods
 at your disposal:
@@ -120,13 +122,15 @@ string like `3:07'48"` or `59'32.431`:
   milliseconds and `hidems` is an optional boolean you can use to request never
   to display millisecond precision.
 
-You can also get full elevation and heartrate data with:
+You can also get full elevation, heartrate, cadence and temperature data with:
 
 * `get_elevation_data()` and `get_elevation_data_imp()`
 * `get_heartrate_data()` and `get_heartrate_data_imp()`
+* `get_cadence_data()`
+* `get_temp_data()`
 
 These methods all return an array of points `[distance, value, tooltip]` where
-the distance is either in kilometers or in miles and the elevation in meters of
+the distance is either in kilometers or in miles and the elevation in meters or
 feet, depending on whether you use the `_imp` variant or not. Heart rate,
 obviously, doesn't change.
 
