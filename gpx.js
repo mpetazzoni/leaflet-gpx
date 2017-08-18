@@ -200,6 +200,20 @@ L.GPX = L.FeatureGroup.extend({
         function(a, b) { return a.toFixed(2) + ' km, ' + b.toFixed(0) + ' degrees'; });
       });
   },
+  get_cadence_data_imp:     function() {
+    var _this = this;
+    return this._info.cad._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_mi, null,
+        function(a, b) { return a.toFixed(2) + ' mi, ' + b.toFixed(0) + ' rpm'; });
+      });
+  },
+  get_temp_data_imp:     function() {
+    var _this = this;
+    return this._info.atemp._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_mi, null,
+        function(a, b) { return a.toFixed(2) + ' mi, ' + b.toFixed(0) + ' degrees'; });
+      });
+  },
 
   reload: function() {
     this._init_info();
