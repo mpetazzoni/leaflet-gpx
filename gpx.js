@@ -170,6 +170,8 @@ L.GPX = L.FeatureGroup.extend({
   get_elevation_min_imp:  function() { return this.to_ft(this.get_elevation_min()); },
 
   get_average_hr:         function() { return this._info.hr.avg; },
+  get_average_temp:         function() { return this._info.atemp.avg; },
+  get_average_cadence:         function() { return this._info.cad.avg; },
   get_heartrate_data:     function() {
     var _this = this;
     return this._info.hr._points.map(
@@ -182,6 +184,34 @@ L.GPX = L.FeatureGroup.extend({
     return this._info.hr._points.map(
       function(p) { return _this._prepare_data_point(p, _this.m_to_mi, null,
         function(a, b) { return a.toFixed(2) + ' mi, ' + b.toFixed(0) + ' bpm'; });
+      });
+  },
+  get_cadence_data:     function() {
+    var _this = this;
+    return this._info.cad._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_km, null,
+        function(a, b) { return a.toFixed(2) + ' km, ' + b.toFixed(0) + ' rpm'; });
+      });
+  },
+  get_temp_data:     function() {
+    var _this = this;
+    return this._info.atemp._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_km, null,
+        function(a, b) { return a.toFixed(2) + ' km, ' + b.toFixed(0) + ' degrees'; });
+      });
+  },
+  get_cadence_data_imp:     function() {
+    var _this = this;
+    return this._info.cad._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_mi, null,
+        function(a, b) { return a.toFixed(2) + ' mi, ' + b.toFixed(0) + ' rpm'; });
+      });
+  },
+  get_temp_data_imp:     function() {
+    var _this = this;
+    return this._info.atemp._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_mi, null,
+        function(a, b) { return a.toFixed(2) + ' mi, ' + b.toFixed(0) + ' degrees'; });
       });
   },
 
@@ -211,7 +241,9 @@ L.GPX = L.FeatureGroup.extend({
         length: 0.0,
         elevation: {gain: 0.0, loss: 0.0, max: 0.0, min: Infinity, _points: []},
         hr: {avg: 0, _total: 0, _points: []},
-        duration: {start: null, end: null, moving: 0, total: 0}
+        duration: {start: null, end: null, moving: 0, total: 0},
+        atemp: {avg: 0, _total: 0, _points: []},
+        cad: {avg: 0, _total: 0, _points: []}
       };
   },
 
@@ -316,6 +348,8 @@ L.GPX = L.FeatureGroup.extend({
     }
 
     this._info.hr.avg = Math.round(this._info.hr._total / this._info.hr._points.length);
+    this._info.cad.avg = Math.round(this._info.cad._total / this._info.cad._points.length);
+    this._info.atemp.avg = Math.round(this._info.atemp._total / this._info.atemp._points.length);
 
     // parse waypoints and add markers for each of them
     if (parseElements.indexOf('waypoint') > -1) {
@@ -396,7 +430,7 @@ L.GPX = L.FeatureGroup.extend({
       var _, ll = new L.LatLng(
         el[i].getAttribute('lat'),
         el[i].getAttribute('lon'));
-      ll.meta = { time: null, ele: null, hr: null };
+      ll.meta = { time: null, ele: null, hr: null, cad: null, atemp: null };
 
       _ = el[i].getElementsByTagName('time');
       if (_.length > 0) {
@@ -413,6 +447,20 @@ L.GPX = L.FeatureGroup.extend({
         ll.meta.hr = parseInt(_[0].textContent);
         this._info.hr._points.push([this._info.length, ll.meta.hr]);
         this._info.hr._total += ll.meta.hr;
+      }
+
+      _ = el[i].getElementsByTagNameNS('*', 'cad');
+      if (_.length > 0) {
+        ll.meta.cad = parseInt(_[0].textContent);
+        this._info.cad._points.push([this._info.length, ll.meta.cad]);
+        this._info.cad._total += ll.meta.cad;
+      }
+
+      _ = el[i].getElementsByTagNameNS('*', 'atemp');
+      if (_.length > 0) {
+        ll.meta.atemp = parseInt(_[0].textContent);
+        this._info.atemp._points.push([this._info.length, ll.meta.atemp]);
+        this._info.atemp._total += ll.meta.atemp;
       }
 
       if(ll.meta.ele > this._info.elevation.max)
