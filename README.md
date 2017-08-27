@@ -115,10 +115,15 @@ at your disposal:
 * `get_elevation_loss_imp()`: returns the cumulative elevation loss, in feet
 
 The reason why these methods return milliseconds is that you have at your
-disposal a nice helper method to format a duration in milliseconds into a cool
-string like `3:07'48"` or `59'32.431`:
+disposal nice helper methods to format a duration in milliseconds into a cool
+string:
 
-* `get_duration_string(duration, hidems)`, where `duration` is in
+* `get_duration_string(duration, hidems)` format to a string like `3:07'48"`
+  or `59'32.431`, where `duration` is in
+  milliseconds and `hidems` is an optional boolean you can use to request never
+  to display millisecond precision.
+* `get_duration_string_iso(duration, hidems)` formats to an ISO like 
+  representation like `3:07:48` or `59:32.431`, where `duration` is in
   milliseconds and `hidems` is an optional boolean you can use to request never
   to display millisecond precision.
 
