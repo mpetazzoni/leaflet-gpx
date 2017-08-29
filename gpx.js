@@ -119,6 +119,11 @@ L.GPX = L.FeatureGroup.extend({
     return s;
   },
 
+  get_duration_string_iso: function(duration, hidems){
+  	var s = this.get_duration_string(duration, hidems);
+	return s.replace("'",':').replace('"','');
+  },
+
   // Public methods
   to_miles:            function(v) { return v / 1.60934; },
   to_ft:               function(v) { return v * 3.28084; },
