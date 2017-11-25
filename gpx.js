@@ -488,7 +488,9 @@ L.GPX = L.FeatureGroup.extend({
         this._info.duration.total += t;
         if (t < options.max_point_interval) this._info.duration.moving += t;
       } else {
-        this._info.duration.start = ll.meta.time;
+		if (this._info.duration.start == null) {
+			this._info.duration.start = ll.meta.time;
+		}
       }
 
       last = ll;
