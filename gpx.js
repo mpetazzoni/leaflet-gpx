@@ -119,9 +119,9 @@ L.GPX = L.FeatureGroup.extend({
     return s;
   },
 
-  get_duration_string_iso: function(duration, hidems){
-  	var s = this.get_duration_string(duration, hidems);
-	return s.replace("'",':').replace('"','');
+  get_duration_string_iso: function(duration, hidems) {
+    var s = this.get_duration_string(duration, hidems);
+    return s.replace("'",':').replace('"','');
   },
 
   // Public methods
@@ -241,15 +241,15 @@ L.GPX = L.FeatureGroup.extend({
   },
 
   _init_info: function() {
-   this._info = {
-        name: null,
-        length: 0.0,
-        elevation: {gain: 0.0, loss: 0.0, max: 0.0, min: Infinity, _points: []},
-        hr: {avg: 0, _total: 0, _points: []},
-        duration: {start: null, end: null, moving: 0, total: 0},
-        atemp: {avg: 0, _total: 0, _points: []},
-        cad: {avg: 0, _total: 0, _points: []}
-      };
+    this._info = {
+      name: null,
+      length: 0.0,
+      elevation: {gain: 0.0, loss: 0.0, max: 0.0, min: Infinity, _points: []},
+      hr: {avg: 0, _total: 0, _points: []},
+      duration: {start: null, end: null, moving: 0, total: 0},
+      atemp: {avg: 0, _total: 0, _points: []},
+      cad: {avg: 0, _total: 0, _points: []}
+    };
   },
 
   _load_xml: function(url, cb, options, async) {
@@ -484,18 +484,18 @@ L.GPX = L.FeatureGroup.extend({
 
         var t = ll.meta.ele - last.meta.ele;
         if (t > 0) {
-	  this._info.elevation.gain += t;
-	} else {
-	  this._info.elevation.loss += Math.abs(t);
-	}
+          this._info.elevation.gain += t;
+        } else {
+          this._info.elevation.loss += Math.abs(t);
+        }
 
         t = Math.abs(ll.meta.time - last.meta.time);
         this._info.duration.total += t;
         if (t < options.max_point_interval) {
-	  this._info.duration.moving += t;
-	}
-      } else {
-	this._info.duration.start |= ll.meta.time;
+          this._info.duration.moving += t;
+        }
+      } else if (this._info.duration.start == null) {
+        this._info.duration.start = ll.meta.time;
       }
 
       last = ll;
