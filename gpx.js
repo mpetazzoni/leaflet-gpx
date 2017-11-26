@@ -468,11 +468,13 @@ L.GPX = L.FeatureGroup.extend({
         this._info.atemp._total += ll.meta.atemp;
       }
 
-      if(ll.meta.ele > this._info.elevation.max)
+      if (ll.meta.ele > this._info.elevation.max) {
         this._info.elevation.max = ll.meta.ele;
+      }
 
-      if(ll.meta.ele < this._info.elevation.min)
+      if (ll.meta.ele < this._info.elevation.min) {
         this._info.elevation.min = ll.meta.ele;
+      }
 
       this._info.elevation._points.push([this._info.length, ll.meta.ele]);
       this._info.duration.end = ll.meta.time;
@@ -481,16 +483,19 @@ L.GPX = L.FeatureGroup.extend({
         this._info.length += this._dist3d(last, ll);
 
         var t = ll.meta.ele - last.meta.ele;
-        if (t > 0) this._info.elevation.gain += t;
-        else this._info.elevation.loss += Math.abs(t);
+        if (t > 0) {
+	  this._info.elevation.gain += t;
+	} else {
+	  this._info.elevation.loss += Math.abs(t);
+	}
 
         t = Math.abs(ll.meta.time - last.meta.time);
         this._info.duration.total += t;
-        if (t < options.max_point_interval) this._info.duration.moving += t;
+        if (t < options.max_point_interval) {
+	  this._info.duration.moving += t;
+	}
       } else {
-		if (this._info.duration.start == null) {
-			this._info.duration.start = ll.meta.time;
-		}
+	this._info.duration.start |= ll.meta.time;
       }
 
       last = ll;
