@@ -440,15 +440,14 @@ L.GPX = L.FeatureGroup.extend({
       _ = el[i].getElementsByTagName('time');
       if (_.length > 0) {
         ll.meta.time = new Date(Date.parse(_[0].textContent));
+      } else {
+        ll.meta.time = new Date('1970-01-01T00:00:00');
       }
 
       _ = el[i].getElementsByTagName('ele');
       if (_.length > 0) {
         ll.meta.ele = parseFloat(_[0].textContent);
-      } else {
-        ll.meta.time = new Date('1970-01-01T00:00:00');
       }
-
       _ = el[i].getElementsByTagNameNS('*', 'hr');
       if (_.length > 0) {
         ll.meta.hr = parseInt(_[0].textContent);
