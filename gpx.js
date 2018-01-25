@@ -61,7 +61,8 @@ var _DEFAULT_POLYLINE_OPTS = {
   color: 'blue'
 };
 var _DEFAULT_GPX_OPTS = {
-  parseElements: ['track', 'route', 'waypoint']
+  parseElements: ['track', 'route', 'waypoint'],
+  show_kilometers: false
 };
 L.GPX = L.FeatureGroup.extend({
   initialize: function(gpx, options) {
@@ -322,7 +323,7 @@ L.GPX = L.FeatureGroup.extend({
     for (j = 0; j < tags.length; j++) {
       el = xml.getElementsByTagName(tags[j][0]);
       for (i = 0; i < el.length; i++) {
-        var coords = this._parse_trkseg(el[i], xml, options, tags[j][1]);
+        var coords = this._parse_trkseg(el[i], xml, options, tags[j][1], layers);
         if (coords.length === 0) continue;
 
         // add track
@@ -425,7 +426,7 @@ L.GPX = L.FeatureGroup.extend({
     }
   },
 
-  _parse_trkseg: function(line, xml, options, tag) {
+  _parse_trkseg: function(line, xml, options, tag, layers) {
     var el = line.getElementsByTagName(tag);
     if (!el.length) return [];
     var coords = [];
@@ -481,6 +482,32 @@ L.GPX = L.FeatureGroup.extend({
 
       if (last != null) {
         this._info.length += this._dist3d(last, ll);
+
+        /*
+         * Add kilometer points to the line.
+         */
+		if (options.gpx_options.show_kilometers) {
+			if (this._parse_current_kilometer != null) {
+				if ((parseInt(this._info.length/1000) - this._parse_current_kilometer) > 0)
+				{
+					this._parse_current_kilometer = parseInt(this._info.length/1000);
+
+					var marker = new L.circleMarker(ll, {
+						radius: 10,
+						fillColor: options.polyline_options.color,
+						fillOpacity: 1,
+					}).bindTooltip(this._parse_current_kilometer.toString(), {
+						direction: 'center',
+						permanent: true,
+						interactive: true,
+						className: 'kilometer_tooltip'
+					});
+					layers.push(marker);
+				}
+			} else {
+				this._parse_current_kilometer = parseInt(this._info.length/1000);
+			}
+		}
 
         var t = ll.meta.ele - last.meta.ele;
         if (t > 0) {
