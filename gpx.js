@@ -448,7 +448,7 @@ L.GPX = L.FeatureGroup.extend({
       if (_.length > 0) {
         ll.meta.ele = parseFloat(_[0].textContent);
       }
-	  
+
       _ = el[i].getElementsByTagNameNS('*', 'hr');
       if (_.length > 0) {
         ll.meta.hr = parseInt(_[0].textContent);
