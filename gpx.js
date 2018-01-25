@@ -490,7 +490,7 @@ L.GPX = L.FeatureGroup.extend({
          * Add points to the line.
          */
         if (options.gpx_options.show_kilometer_point || options.gpx_options.show_miles_point) {
-          if (this._parse_current_kilometer !== null) {
+          if (this._parse_current_kilometer != null) {
 
           // Kilometer Point
           if (options.gpx_options.show_kilometer_point) {
