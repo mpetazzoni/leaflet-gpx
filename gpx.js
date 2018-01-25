@@ -62,7 +62,8 @@ var _DEFAULT_POLYLINE_OPTS = {
 };
 var _DEFAULT_GPX_OPTS = {
   parseElements: ['track', 'route', 'waypoint'],
-  show_kilometers: false
+  show_kilometer_point: false,
+  show_miles_point: false
 };
 L.GPX = L.FeatureGroup.extend({
   initialize: function(gpx, options) {
@@ -486,29 +487,64 @@ L.GPX = L.FeatureGroup.extend({
         this._info.length += this._dist3d(last, ll);
 
         /*
-         * Add kilometer points to the line.
+         * Add points to the line.
          */
-		if (options.gpx_options.show_kilometers) {
-			if (this._parse_current_kilometer != null) {
-				if ((parseInt(this._info.length/1000) - this._parse_current_kilometer) > 0)
-				{
-					this._parse_current_kilometer = parseInt(this._info.length/1000);
+		if (options.gpx_options.show_kilometer_point || options.gpx_options.show_miles_point) {
+		  if (this._parse_current_kilometer != null) {
 
-					var marker = new L.circleMarker(ll, {
-						radius: 10,
-						fillColor: options.polyline_options.color,
-						fillOpacity: 1,
-					}).bindTooltip(this._parse_current_kilometer.toString(), {
-						direction: 'center',
-						permanent: true,
-						interactive: true,
-						className: 'kilometer_tooltip'
-					});
-					layers.push(marker);
-				}
-			} else {
-				this._parse_current_kilometer = parseInt(this._info.length/1000);
-			}
+			// Kilometer Point
+			if (options.gpx_options.show_kilometer_point) {
+			  if ((parseInt(this._info.length/1000) - this._parse_current_kilometer) > 0) {
+                this._parse_current_kilometer = parseInt(this._info.length/1000);
+                var marker = new L.circleMarker(ll, {
+                  radius: 10,
+                  fillColor: options.polyline_options.color,
+                  fillOpacity: 1,
+                  }).bindTooltip(this._parse_current_kilometer.toString(), {
+                    direction: 'center',
+				    permanent: true,
+				    interactive: true,
+				    className: 'kilometer_tooltip'
+				    });
+			    layers.push(marker);
+			  }
+	        }
+
+			// Miles Point
+			if (options.gpx_options.show_miles_point) {
+			  if ((parseInt(this.to_miles(this._info.length)/1000) - this._parse_current_mile) > 0) {
+                this._parse_current_mile = parseInt(this.to_miles(this._info.length)/1000);
+                var marker = new L.circleMarker(ll, {
+                  radius: 10,
+                  fillColor: options.polyline_options.color,
+                  fillOpacity: 1,
+                  }).bindTooltip(this._parse_current_mile.toString(), {
+                    direction: 'center',
+				    permanent: true,
+				    interactive: true,
+				    className: 'mile_tooltip'
+				    });
+			    layers.push(marker);
+			  }
+		    }
+		  } else {
+		    this._parse_current_kilometer = parseInt(this._info.length/1000);
+		    this._parse_current_mile = parseInt(this._info.length/1000);
+
+			// Append style element for the tooltip of the points 
+			var element = document.createElement('style'), sheet;
+			document.head.appendChild(element);
+			sheet = element.sheet;
+            var styles = '.kilometer_tooltip, .mile_tooltip {';
+            styles += 'background: none!important;';
+            styles += 'border: none!important;'
+            styles += 'font-weight: 900!important;';
+            styles += 'font-size: larger!important;'
+            styles += 'color: white!important;';
+            styles += 'box-shadow: none!important;';
+            styles += '}';
+            sheet.insertRule(styles, 0);
+		  }
 		}
 
         var t = ll.meta.ele - last.meta.ele;
