@@ -440,6 +440,8 @@ L.GPX = L.FeatureGroup.extend({
       _ = el[i].getElementsByTagName('time');
       if (_.length > 0) {
         ll.meta.time = new Date(Date.parse(_[0].textContent));
+      } else {
+        ll.meta.time = new Date('1970-01-01T00:00:00');
       }
 
       _ = el[i].getElementsByTagName('ele');
