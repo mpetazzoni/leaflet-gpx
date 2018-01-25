@@ -502,17 +502,17 @@ L.GPX = L.FeatureGroup.extend({
                   fillOpacity: 1,
                   }).bindTooltip(this._parse_current_kilometer.toString(), {
                     direction: 'center',
-				    permanent: true,
-				    interactive: true,
-				    className: 'kilometer_tooltip'
-				    });
+                    permanent: true,
+                    interactive: true,
+                    className: 'kilometer_tooltip'
+                    });
                 layers.push(marker);
-			  }
-	        }
+            }
+          }
 
-			// Miles Point
-			if (options.gpx_options.show_miles_point) {
-			  if ((parseInt(this.to_miles(this._info.length)/1000) - this._parse_current_mile) > 0) {
+            // Miles Point
+            if (options.gpx_options.show_miles_point) {
+              if ((parseInt(this.to_miles(this._info.length)/1000) - this._parse_current_mile) > 0) {
                 this._parse_current_mile = parseInt(this.to_miles(this._info.length)/1000);
                 var marker = new L.circleMarker(ll, {
                   radius: 10,
@@ -529,7 +529,7 @@ L.GPX = L.FeatureGroup.extend({
             }
           } else {
             this._parse_current_kilometer = parseInt(this._info.length/1000);
-		    this._parse_current_mile = parseInt(this._info.length/1000);
+            this._parse_current_mile = parseInt(this._info.length/1000);
 
             // Append style element for the tooltip of the points
             var element = document.createElement('style'), sheet;
