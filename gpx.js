@@ -325,8 +325,25 @@ L.GPX = L.FeatureGroup.extend({
         var coords = this._parse_trkseg(el[i], xml, options, tags[j][1]);
         if (coords.length === 0) continue;
 
+	// check if any line styling is set as per http://www.topografix.com/GPX/gpx_style/0/2/ to override polyline_options
+        pl_o = options.polyline_options;
+        var e = el[i].getElementsByTagName('extensions');
+        if (e.length > 0) {
+          var l = e[0].getElementsByTagName('line');
+          if (l.length > 0) {
+            var _ = l[0].getElementsByTagName('color');
+            if (_.length > 0) pl_o.color = '#'+_[0].textContent;
+            var _ = l[0].getElementsByTagName('opacity');
+            if (_.length > 0) pl_o.opacity = _[0].textContent;
+            var _ = l[0].getElementsByTagName('weight');
+            if (_.length > 0) pl_o.weight = _[0].textContent;
+            var _ = l[0].getElementsByTagName('linecap');
+            if (_.length > 0) pl_o.lineCap = _[0].textContent;
+          }
+        }
+
         // add track
-        var l = new L.Polyline(coords, options.polyline_options);
+        var l = new L.Polyline(coords, pl_o);
         this.fire('addline', { line: l })
         layers.push(l);
 
