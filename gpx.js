@@ -63,7 +63,19 @@ var _DEFAULT_POLYLINE_OPTS = {
 var _DEFAULT_GPX_OPTS = {
   parseElements: ['track', 'route', 'waypoint'],
   show_kilometer_point: false,
-  show_miles_point: false
+  kilometer_point_options : {
+    kilometer_point_color: 'blue',
+    kilometer_point_color_text: 'white',
+    kilometer_point_intervall: 1,
+    kilometer_point_radius: 10,
+  },
+  show_mile_point: true,
+  mile_point_options : {
+    mile_point_color: 'blue',
+    mile_point_color_text: 'white',
+    mile_intervall: 1,
+    mile_point_radius: 10,
+  },
 };
 L.GPX = L.FeatureGroup.extend({
   initialize: function(gpx, options) {
@@ -324,7 +336,7 @@ L.GPX = L.FeatureGroup.extend({
     for (j = 0; j < tags.length; j++) {
       el = xml.getElementsByTagName(tags[j][0]);
       for (i = 0; i < el.length; i++) {
-        var coords = this._parse_trkseg(el[i], xml, options, tags[j][1], layers);
+        var coords = this._parse_trkseg(el[i], xml, options, tags[j][1]);
         if (coords.length === 0) continue;
 
         // add track
@@ -427,8 +439,12 @@ L.GPX = L.FeatureGroup.extend({
     }
   },
 
-  _parse_trkseg: function(line, xml, options, tag, layers) {
+  _parse_trkseg: function(line, xml, options, tag) {
     var el = line.getElementsByTagName(tag);
+    var kilometer_point_layers = [];
+    var mile_point_layers = [];
+	var _this = this;
+
     if (!el.length) return [];
     var coords = [];
     var last = null;
@@ -489,42 +505,44 @@ L.GPX = L.FeatureGroup.extend({
         /*
          * Add points to the line.
          */
-        if (options.gpx_options.show_kilometer_point || options.gpx_options.show_miles_point) {
+        if (options.gpx_options.show_kilometer_point || options.gpx_options.show_mile_point) {
           if (this._parse_current_kilometer != null) {
 
           // Kilometer Point
           if (options.gpx_options.show_kilometer_point) {
-            if ((parseInt(this._info.length/1000) - this._parse_current_kilometer) > 0) {
+            if ((parseInt(this._info.length/1000) - this._parse_current_kilometer) > options.gpx_options.kilometer_point_options.kilometer_point_intervall-1) {
               this._parse_current_kilometer = parseInt(this._info.length/1000);
                 var marker = new L.circleMarker(ll, {
-                  radius: 10,
-                  fillColor: options.polyline_options.color,
+                  radius: options.gpx_options.kilometer_point_options.kilometer_point_radius,
+				  stroke: false,
+                  fillColor: options.gpx_options.kilometer_point_options.kilometer_point_color,
                   fillOpacity: 1,
-                  }).bindTooltip(this._parse_current_kilometer.toString(), {
-                    direction: 'center',
-                    permanent: true,
-                    interactive: true,
-                    className: 'kilometer_tooltip'
-                    });
-                layers.push(marker);
+                }).bindTooltip(this._parse_current_kilometer.toString(), {
+                  direction: 'center',
+                  permanent: true,
+                  interactive: true,
+                  className: 'kilometer_tooltip'
+                });
+                kilometer_point_layers.push(marker);
             }
           }
 
-            // Miles Point
-            if (options.gpx_options.show_miles_point) {
-              if ((parseInt(this.to_miles(this._info.length)/1000) - this._parse_current_mile) > 0) {
+            // Mile Point
+            if (options.gpx_options.show_mile_point) {
+              if ((parseInt(this.to_miles(this._info.length)/1000) - this._parse_current_mile) > options.gpx_options.mile_point_options.mile_intervall) {
                 this._parse_current_mile = parseInt(this.to_miles(this._info.length)/1000);
                 var marker = new L.circleMarker(ll, {
-                  radius: 10,
-                  fillColor: options.polyline_options.color,
+                  radius: options.gpx_options.mile_point_options.mile_point_radius,
+				  stroke: false,
+                  fillColor: options.gpx_options.mile_point_options.mile_point_color,
                   fillOpacity: 1,
-                  }).bindTooltip(this._parse_current_mile.toString(), {
-                    direction: 'center',
-                    permanent: true,
-                    interactive: true,
-                    className: 'mile_tooltip'
-                    });
-                layers.push(marker);
+                }).bindTooltip(this._parse_current_mile.toString(), {
+                  direction: 'center',
+                  permanent: true,
+                  interactive: true,
+                  className: 'mile_tooltip'
+                });
+                mile_point_layers.push(marker);
               }
             }
           } else {
@@ -535,15 +553,23 @@ L.GPX = L.FeatureGroup.extend({
             var element = document.createElement('style'), sheet;
             document.head.appendChild(element);
             sheet = element.sheet;
-            var styles = '.kilometer_tooltip, .mile_tooltip {';
+            var styles = '';
+			styles += '.kilometer_tooltip, .mile_tooltip {';
             styles += 'background: none!important;';
             styles += 'border: none!important;';
             styles += 'font-weight: 900!important;';
             styles += 'font-size: larger!important;';
-            styles += 'color: white!important;';
             styles += 'box-shadow: none!important;';
             styles += '}';
+			styles_kilometer = '.kilometer_tooltip {';
+            styles_kilometer += 'color: ' + options.gpx_options.kilometer_point_options.kilometer_point_color_text + ';';
+            styles_kilometer += '}';
+			styles_mile = '.mile_tooltip {';
+            styles_mile += 'color: ' + options.gpx_options.mile_point_options.mile_point_color_text + ';';
+            styles_mile += '}';
             sheet.insertRule(styles, 0);
+            sheet.insertRule(styles_kilometer, 0);
+            sheet.insertRule(styles_mile, 0);
           }
         }
 
@@ -565,6 +591,14 @@ L.GPX = L.FeatureGroup.extend({
 
       last = ll;
       coords.push(ll);
+    }
+
+    if (kilometer_point_layers.length > 1) {
+       _this.addLayer(new L.FeatureGroup(kilometer_point_layers));
+    }
+
+    if (mile_point_layers.length > 1) {
+       _this.addLayer(new L.FeatureGroup(mile_point_layers));
     }
 
     return coords;
