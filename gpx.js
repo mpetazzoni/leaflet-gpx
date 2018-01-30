@@ -552,7 +552,7 @@ L.GPX = L.FeatureGroup.extend({
             document.head.appendChild(element);
             var sheet = element.sheet;
             var styles = '';
-			styles += '.kilometer_tooltip, .mile_tooltip {';
+            styles += '.kilometer_tooltip, .mile_tooltip {';
             styles += 'background: none!important;';
             styles += 'border: none!important;';
             styles += 'font-weight: 900!important;';
@@ -560,11 +560,11 @@ L.GPX = L.FeatureGroup.extend({
             styles += 'box-shadow: none!important;';
             styles += '}';
             sheet.insertRule(styles, 0);
-			var styles_kilometer = '.kilometer_tooltip {';
+            var styles_kilometer = '.kilometer_tooltip {';
             styles_kilometer += 'color: ' + options.gpx_options.kilometer_point_options.kilometer_point_color_text + ';';
             styles_kilometer += '}';
             sheet.insertRule(styles_kilometer, 0);
-			var styles_mile = '.mile_tooltip {';
+            var styles_mile = '.mile_tooltip {';
             styles_mile += 'color: ' + options.gpx_options.mile_point_options.mile_point_color_text + ';';
             styles_mile += '}';
             sheet.insertRule(styles_mile, 0);
