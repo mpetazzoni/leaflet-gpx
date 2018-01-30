@@ -443,7 +443,7 @@ L.GPX = L.FeatureGroup.extend({
     var el = line.getElementsByTagName(tag);
     var kilometer_point_layers = [];
     var mile_point_layers = [];
-	var _this = this;
+    var _this = this;
 
     if (!el.length) return [];
     var coords = [];
@@ -507,26 +507,24 @@ L.GPX = L.FeatureGroup.extend({
          */
         if (options.gpx_options.show_kilometer_point || options.gpx_options.show_mile_point) {
           if (this._parse_current_kilometer != null) {
-
-          // Kilometer Point
-          if (options.gpx_options.show_kilometer_point) {
-            if ((parseInt(this._info.length/1000) - this._parse_current_kilometer) > options.gpx_options.kilometer_point_options.kilometer_point_intervall-1) {
-              this._parse_current_kilometer = parseInt(this._info.length/1000);
-                var marker = new L.circleMarker(ll, {
-                  radius: options.gpx_options.kilometer_point_options.kilometer_point_radius,
-				  stroke: false,
-                  fillColor: options.gpx_options.kilometer_point_options.kilometer_point_color,
-                  fillOpacity: 1,
-                }).bindTooltip(this._parse_current_kilometer.toString(), {
-                  direction: 'center',
-                  permanent: true,
-                  interactive: true,
-                  className: 'kilometer_tooltip'
-                });
-                kilometer_point_layers.push(marker);
+            // Kilometer Point
+            if (options.gpx_options.show_kilometer_point) {
+              if ((parseInt(this._info.length/1000) - this._parse_current_kilometer) > options.gpx_options.kilometer_point_options.kilometer_point_intervall-1) {
+                this._parse_current_kilometer = parseInt(this._info.length/1000);
+                  var marker = new L.circleMarker(ll, {
+                    radius: options.gpx_options.kilometer_point_options.kilometer_point_radius,
+                    stroke: false,
+                    fillColor: options.gpx_options.kilometer_point_options.kilometer_point_color,
+                    fillOpacity: 1,
+                  }).bindTooltip(this._parse_current_kilometer.toString(), {
+                    direction: 'center',
+                    permanent: true,
+                    interactive: true,
+                    className: 'kilometer_tooltip'
+                  });
+                  kilometer_point_layers.push(marker);
+              }
             }
-          }
-
             // Mile Point
             if (options.gpx_options.show_mile_point) {
               if ((parseInt(this.to_miles(this._info.length)/1000) - this._parse_current_mile) > options.gpx_options.mile_point_options.mile_intervall) {
@@ -550,9 +548,9 @@ L.GPX = L.FeatureGroup.extend({
             this._parse_current_mile = parseInt(this._info.length/1000);
 
             // Append style element for the tooltip of the points
-            var element = document.createElement('style'), sheet;
+            var element = document.createElement('style');
             document.head.appendChild(element);
-            sheet = element.sheet;
+            var sheet = element.sheet;
             var styles = '';
 			styles += '.kilometer_tooltip, .mile_tooltip {';
             styles += 'background: none!important;';
@@ -561,14 +559,14 @@ L.GPX = L.FeatureGroup.extend({
             styles += 'font-size: larger!important;';
             styles += 'box-shadow: none!important;';
             styles += '}';
-			styles_kilometer = '.kilometer_tooltip {';
+            sheet.insertRule(styles, 0);
+			var styles_kilometer = '.kilometer_tooltip {';
             styles_kilometer += 'color: ' + options.gpx_options.kilometer_point_options.kilometer_point_color_text + ';';
             styles_kilometer += '}';
-			styles_mile = '.mile_tooltip {';
+            sheet.insertRule(styles_kilometer, 0);
+			var styles_mile = '.mile_tooltip {';
             styles_mile += 'color: ' + options.gpx_options.mile_point_options.mile_point_color_text + ';';
             styles_mile += '}';
-            sheet.insertRule(styles, 0);
-            sheet.insertRule(styles_kilometer, 0);
             sheet.insertRule(styles_mile, 0);
           }
         }
