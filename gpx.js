@@ -322,12 +322,13 @@ L.GPX = L.FeatureGroup.extend({
     for (j = 0; j < tags.length; j++) {
       el = xml.getElementsByTagName(tags[j][0]);
       for (i = 0; i < el.length; i++) {
-        var coords = this._parse_trkseg(el[i], xml, options, tags[j][1]);
+        var coords = this._parse_trkseg(el[i], options, tags[j][1]);
         if (coords.length === 0) continue;
 
         // add track
         var l = new L.Polyline(coords, options.polyline_options);
-        this.fire('addline', { line: l })
+        this.fire('parsesegment', { line: l, element: el[i] });
+        this.fire('addline', { line: l });
         layers.push(l);
 
         if (options.marker_options.startIcon || options.marker_options.startIconUrl) {
@@ -336,6 +337,7 @@ L.GPX = L.FeatureGroup.extend({
             clickable: options.marker_options.clickable,
             icon: options.marker_options.startIcon || new L.GPXTrackIcon({iconUrl: options.marker_options.startIconUrl})
           });
+          this.fire('parsewaypoint', { point: p, point_type: 'start', element: el[i] });
           this.fire('addpoint', { point: p, point_type: 'start' });
           layers.push(p);
         }
@@ -346,6 +348,7 @@ L.GPX = L.FeatureGroup.extend({
             clickable: options.marker_options.clickable,
             icon: options.marker_options.endIcon || new L.GPXTrackIcon({iconUrl: options.marker_options.endIconUrl})
           });
+          this.fire('parsewaypoint', { point: p, point_type: 'end', element: el[i] });
           this.fire('addpoint', { point: p, point_type: 'end' });
           layers.push(p);
         }
@@ -413,10 +416,13 @@ L.GPX = L.FeatureGroup.extend({
           icon: symIcon
         });
         marker.bindPopup("<b>" + name + "</b>" + (desc.length > 0 ? '<br>' + desc : '')).openPopup();
+        this.fire('parsewaypoint', { point: marker, point_type: 'waypoint', element: el[i] });
         this.fire('addpoint', { point: marker, point_type: 'waypoint' });
         layers.push(marker);
       }
     }
+    
+    this.fire('parsefile', { layers: layers, element: xml });
 
     if (layers.length > 1) {
        return new L.FeatureGroup(layers);
@@ -425,7 +431,7 @@ L.GPX = L.FeatureGroup.extend({
     }
   },
 
-  _parse_trkseg: function(line, xml, options, tag) {
+  _parse_trkseg: function(line, options, tag) {
     var el = line.getElementsByTagName(tag);
     if (!el.length) return [];
     var coords = [];
@@ -499,6 +505,8 @@ L.GPX = L.FeatureGroup.extend({
       } else if (this._info.duration.start == null) {
         this._info.duration.start = ll.meta.time;
       }
+
+      this.fire('parsepoint', { point: ll, element: el[i] });
 
       last = ll;
       coords.push(ll);
