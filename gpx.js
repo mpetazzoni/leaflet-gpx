@@ -274,7 +274,7 @@ L.GPX = L.FeatureGroup.extend({
       var layers = _this._parse_gpx_data(gpx, options);
       if (!layers) return;
       _this.addLayer(layers);
-      _this.fire('loaded');
+      _this.fire('loaded', { layers: layers, element: gpx });
     }
     if (input.substr(0,1)==='<') { // direct XML has to start with a <
       var parser = new DOMParser();
@@ -327,8 +327,7 @@ L.GPX = L.FeatureGroup.extend({
 
         // add track
         var l = new L.Polyline(coords, options.polyline_options);
-        this.fire('parsesegment', { line: l, element: el[i] });
-        this.fire('addline', { line: l });
+        this.fire('addline', { line: l, element: el[i] });
         layers.push(l);
 
         if (options.marker_options.startIcon || options.marker_options.startIconUrl) {
@@ -337,8 +336,7 @@ L.GPX = L.FeatureGroup.extend({
             clickable: options.marker_options.clickable,
             icon: options.marker_options.startIcon || new L.GPXTrackIcon({iconUrl: options.marker_options.startIconUrl})
           });
-          this.fire('parsewaypoint', { point: p, point_type: 'start', element: el[i] });
-          this.fire('addpoint', { point: p, point_type: 'start' });
+          this.fire('addpoint', { point: p, point_type: 'start', element: el[i] });
           layers.push(p);
         }
 
@@ -348,8 +346,7 @@ L.GPX = L.FeatureGroup.extend({
             clickable: options.marker_options.clickable,
             icon: options.marker_options.endIcon || new L.GPXTrackIcon({iconUrl: options.marker_options.endIconUrl})
           });
-          this.fire('parsewaypoint', { point: p, point_type: 'end', element: el[i] });
-          this.fire('addpoint', { point: p, point_type: 'end' });
+          this.fire('addpoint', { point: p, point_type: 'end', element: el[i] });
           layers.push(p);
         }
       }
@@ -416,13 +413,10 @@ L.GPX = L.FeatureGroup.extend({
           icon: symIcon
         });
         marker.bindPopup("<b>" + name + "</b>" + (desc.length > 0 ? '<br>' + desc : '')).openPopup();
-        this.fire('parsewaypoint', { point: marker, point_type: 'waypoint', element: el[i] });
-        this.fire('addpoint', { point: marker, point_type: 'waypoint' });
+        this.fire('addpoint', { point: marker, point_type: 'waypoint', element: el[i] });
         layers.push(marker);
       }
     }
-    
-    this.fire('parsefile', { layers: layers, element: xml });
 
     if (layers.length > 1) {
        return new L.FeatureGroup(layers);
@@ -505,8 +499,6 @@ L.GPX = L.FeatureGroup.extend({
       } else if (this._info.duration.start == null) {
         this._info.duration.start = ll.meta.time;
       }
-
-      this.fire('parsepoint', { point: ll, element: el[i] });
 
       last = ll;
       coords.push(ll);
