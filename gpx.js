@@ -48,9 +48,11 @@ var _DEFAULT_MARKER_OPTS = {
   startIconUrl: 'pin-icon-start.png',
   endIconUrl: 'pin-icon-end.png',
   shadowUrl: 'pin-shadow.png',
+  wptIcons: [],
   wptIconUrls : {
     '': 'pin-icon-wpt.png',
   },
+  pointMatchers: [],
   iconSize: [33, 50],
   shadowSize: [50, 50],
   iconAnchor: [16, 45],
@@ -291,7 +293,7 @@ L.GPX = L.FeatureGroup.extend({
   },
 
   _parse_gpx_data: function(xml, options) {
-    var j, i, el, layers = [];
+    var i, t, l, el, layers = [];
     var tags = [];
 
     var parseElements = options.gpx_options.parseElements;
@@ -319,35 +321,12 @@ L.GPX = L.FeatureGroup.extend({
       this._info.copyright = copyright[0].textContent;
     }
 
-    for (j = 0; j < tags.length; j++) {
-      el = xml.getElementsByTagName(tags[j][0]);
+    for (t = 0; t < tags.length; t++) {
+      el = xml.getElementsByTagName(tags[t][0]);
       for (i = 0; i < el.length; i++) {
-        var coords = this._parse_trkseg(el[i], options, tags[j][1]);
-        if (coords.length === 0) continue;
-
-        // add track
-        var l = new L.Polyline(coords, options.polyline_options);
-        this.fire('addline', { line: l, element: el[i] });
-        layers.push(l);
-
-        if (options.marker_options.startIcon || options.marker_options.startIconUrl) {
-          // add start pin
-          var p = new L.Marker(coords[0], {
-            clickable: options.marker_options.clickable,
-            icon: options.marker_options.startIcon || new L.GPXTrackIcon({iconUrl: options.marker_options.startIconUrl})
-          });
-          this.fire('addpoint', { point: p, point_type: 'start', element: el[i] });
-          layers.push(p);
-        }
-
-        if (options.marker_options.endIcon || options.marker_options.endIconUrl) {
-          // add end pin
-          p = new L.Marker(coords[coords.length-1], {
-            clickable: options.marker_options.clickable,
-            icon: options.marker_options.endIcon || new L.GPXTrackIcon({iconUrl: options.marker_options.endIconUrl})
-          });
-          this.fire('addpoint', { point: p, point_type: 'end', element: el[i] });
-          layers.push(p);
+        var trackLayers = this._parse_trkseg(el[i], options, tags[t][1]);
+        for (l = 0; l < trackLayers.length; l++) {
+          layers.push(trackLayers[l]);
         }
       }
     }
@@ -408,7 +387,7 @@ L.GPX = L.FeatureGroup.extend({
         }
 
         var marker = new L.Marker(ll, {
-          clickable: true,
+          clickable: options.marker_options.clickable,
           title: name,
           icon: symIcon
         });
@@ -428,7 +407,10 @@ L.GPX = L.FeatureGroup.extend({
   _parse_trkseg: function(line, options, tag) {
     var el = line.getElementsByTagName(tag);
     if (!el.length) return [];
+
     var coords = [];
+    var markers = [];
+    var layers = [];
     var last = null;
 
     for (var i = 0; i < el.length; i++) {
@@ -447,6 +429,19 @@ L.GPX = L.FeatureGroup.extend({
       _ = el[i].getElementsByTagName('ele');
       if (_.length > 0) {
         ll.meta.ele = parseFloat(_[0].textContent);
+      }
+
+      _ = el[i].getElementsByTagName('name');
+      if (_.length > 0) {
+        var name = _[0].textContent;
+        var ptMatchers = options.marker_options.pointMatchers || [];
+
+        for (var j = 0; j < ptMatchers.length; j++) {
+          if (ptMatchers[j].regex.test(name)) {
+            markers.push({ label: name, coords: ll, icon: ptMatchers[j].icon, element: el[i] });
+            break;
+          }
+        }
       }
 
       _ = el[i].getElementsByTagNameNS('*', 'hr');
@@ -504,7 +499,43 @@ L.GPX = L.FeatureGroup.extend({
       coords.push(ll);
     }
 
-    return coords;
+    // add track
+    var l = new L.Polyline(coords, options.polyline_options);
+    this.fire('addline', { line: l, element: line });
+    layers.push(l);
+
+    if (options.marker_options.startIcon || options.marker_options.startIconUrl) {
+      // add start pin
+      var marker = new L.Marker(coords[0], {
+        clickable: options.marker_options.clickable,
+        icon: options.marker_options.startIcon || new L.GPXTrackIcon({iconUrl: options.marker_options.startIconUrl})
+      });
+      this.fire('addpoint', { point: marker, point_type: 'start', element: el[0] });
+      layers.push(marker);
+    }
+
+    if (options.marker_options.endIcon || options.marker_options.endIconUrl) {
+      // add end pin
+      var marker = new L.Marker(coords[coords.length-1], {
+        clickable: options.marker_options.clickable,
+        icon: options.marker_options.endIcon || new L.GPXTrackIcon({iconUrl: options.marker_options.endIconUrl})
+      });
+      this.fire('addpoint', { point: marker, point_type: 'end', element: el[el.length-1] });
+      layers.push(marker);
+    }
+
+    // add named markers
+    for (var i = 0; i < markers.length; i++) {
+      var marker = new L.Marker(markers[i].coords, {
+        clickable: options.marker_options.clickable,
+        title: markers[i].label,
+        icon: markers[i].icon
+      });
+      this.fire('addpoint', { point: marker, point_type: 'label', element: markers[i].element });
+      layers.push(marker);
+    }
+
+    return layers;
   },
 
   _dist2d: function(a, b) {

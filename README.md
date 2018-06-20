@@ -243,6 +243,83 @@ new L.GPX(app.params.gpx_url, {
 }).addTo(map);
 ```
 
+Named points
+------------
+
+GPX points can be named, for example to denote certain POIs (points of
+interest). You can setup rules to match point names to create labeled
+markers for those points by providing a `pointMatchers` array in the
+`marker_options`. Each element in this array must define a `regex` to
+match the point's name and an `icon` object (any `L.Marker` or
+for example an `L.AwesomeMarkers.icon` as shown above in _Custom
+markers_).
+
+Each named point in the GPX track is evaluated against those rules and
+a marker is created with the point's name as label from the first
+matching rule.
+
+```javascript
+new L.GPX(app.params.gpx_url, {
+  async: true,
+  marker_options: {
+    pointMatchers: [
+      {
+        regex: /Coffee/,
+        icon: new L.AwesomeMarkers.icon({
+          icon: 'coffee',
+          markerColor: 'blue',
+          iconColor: 'white'
+        }),
+      },
+      {
+        regex: /Home/,
+        icon: new L.AwesomeMarkers.icon({
+          icon: 'home',
+          markerColor: 'green',
+          iconColor: 'white'
+        }),
+      }
+    ]
+  }
+}).on('loaded', function(e) {
+  var gpx = e.target;
+  map.fitToBounds(gpx.getBounds());
+}).addTo(map);
+```
+
+Events
+------
+
+Events are fired on the `L.GPX` object as the GPX data is being parsed
+and the map layers generated. You can listen for those events by
+attaching the corresponding event listener on the `L.GPX` object:
+
+```javascript
+new L.GPX(app.params.gpx_url, {
+  // options
+}).on('addpoint', function(e) {
+  console.log('Added ' + e.point_type + ' point: ' + e.point);
+}).on('loaded', function(e) {
+  var gpx = e.target;
+  map.fitToBounds(gpx.getBounds());
+}).addTo(map);
+```
+
+`addpoint` events are fired for every marker added to the map, in
+particular for the start and end points, all the waypoints, and all the
+named points that matched `pointMatchers` rules. Each `addpoint` event
+contains the following properties:
+
+- `point`: the marker object itself, from which you can get or modify
+  the latitude and longitude of the point and any other attribute of the
+  marker.
+- `point_type`: one of `start`, `end`, `waypoint` or `label`, allowing
+  you to identify what type of point the marker is for.
+- `element`: the track point element the marker was created for.
+
+One use case for those events is for example to attach additional
+content or behavior to the markers that were generated (popups, etc).
+
 Caveats
 -------
 
