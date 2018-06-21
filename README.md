@@ -1,5 +1,4 @@
-GPX plugin for Leaflet
-======================
+# GPX plugin for Leaflet
 
 [![CDNJS](https://img.shields.io/cdnjs/v/leaflet-gpx.svg)](https://cdnjs.com/libraries/leaflet-gpx)
 
@@ -20,16 +19,13 @@ passed to the `GPX` constructor.
 I've put together a complete example as a
 [demo](http://mpetazzoni.github.com/leaflet-gpx/).
 
-
-License
--------
+## License
 
 `leaflet-gpx` is under the *BSD 2-clause license*. Please refer to the
 attached LICENSE file and/or to the copyright header in gpx.js for more
 information.
 
-Usage
------
+## Usage
 
 Usage is very simple. First, include the Leaflet.js and Leaflet-GPX
 scripts in your HTML page:
@@ -66,10 +62,6 @@ new L.GPX(gpx, {async: true}).on('loaded', function(e) {
 }).addTo(map);
 ```
 
-You can change the GPX track's appearance with a `polyline_options` object in
-the second argument of the constructor. Available options are listed in the
-[Leaflet documentation](http://leafletjs.com/reference.html#polyline).
-
 Some GPX tracks contain the actual route/track twice, both the `<trk>` and
 `<rte>` elements are used. You can tell `leaflet-gpx` which tag to use or to
 use both (which is the default setting for backwards compatibility) with the
@@ -77,6 +69,7 @@ use both (which is the default setting for backwards compatibility) with the
 `parseElements` controls this behavior, it should be an array that contains
 `'route'` and/or `'track'`.
 
+### Available functions
 
 If you want to display additional information about the GPX track, you can do
 so in the 'loaded' event handler, calling one of the following methods on the
@@ -139,18 +132,20 @@ the distance is either in kilometers or in miles and the elevation in meters or
 feet, depending on whether you use the `_imp` variant or not. Heart rate,
 obviously, doesn't change.
 
-You can reload remote gpx file every 5 seconds with:
-```javascript
-var gpxLayer = new L.GPX(gpxFile);
+### Reloading
 
+You can make `leaflet-gpx` reload the source GPX file by calling the
+`reload()` method. For example, to trigger a reload every 5 seconds, you
+can do:
+
+```javascript
+var gpx = new L.GPX(gpxFile);
 setInterval(function() {
-	gpxLayer.reload();
-},5000);
+	gpx.reload();
+}, 5000);
 ```
 
-
-About marker icons
-------------------
+## About marker icons
 
 By default `gpx.js` will use `pin-icon-start.png`, `pin-icon-end.png` and
 `pin-shadow.png` as the marker icons URLs for, respectively, the start marker,
@@ -184,8 +179,7 @@ new L.GPX(url, {
 }).addTo(map);
 ```
 
-About waypoints
----------------
+## About waypoints
 
 By default `gpx.js` will parse Waypoints from a GPX file. This may also
 be steered via the value `waypoint` in `gpx_options`, e.g.
@@ -215,8 +209,7 @@ new L.GPX(app.params.gpx_url, {
 }).addTo(map);
 ```
 
-Custom markers
---------------
+## Custom markers
 
 You can also use your own icons/markers if you want to use custom
 markers, for example from `leaflet-awesome-markers`. To specify you own
@@ -243,8 +236,7 @@ new L.GPX(app.params.gpx_url, {
 }).addTo(map);
 ```
 
-Named points
-------------
+## Named points
 
 GPX points can be named, for example to denote certain POIs (points of
 interest). You can setup rules to match point names to create labeled
@@ -287,8 +279,7 @@ new L.GPX(app.params.gpx_url, {
 }).addTo(map);
 ```
 
-Events
-------
+## Events
 
 Events are fired on the `L.GPX` object as the GPX data is being parsed
 and the map layers generated. You can listen for those events by
@@ -320,8 +311,50 @@ contains the following properties:
 One use case for those events is for example to attach additional
 content or behavior to the markers that were generated (popups, etc).
 
-Caveats
--------
+## Line styling
+
+`leaflet-gpx` understands the [GPX
+Style](http://www.topografix.com/GPX/gpx_style/0/2) extension, and will
+extract styling information defined on routes and track segments to use
+for drawing the corresponding polyline.
+
+```xml
+<trkseg>
+  <extensions>
+    <line xmlns="http://www.topografix.com/GPX/gpx_style/0/2">
+      <color>FF0000</color>
+      <opacity>0.5</opacity>
+      <weight>1</weight>
+      <linecap>square</linecap>
+    </line>
+  </extensions>
+  <trkpt lat="..." lon="..."></trkpt>
+</trkseg>
+```
+
+You can override the style of the lines by passing a `polyline_options`
+object into the `options` argument of the `L.GPX` constructor:
+
+```javascript
+new L.GPX(app.params.url, {
+  polyline_options: {
+    color: 'green',
+    opacity: 0.75,
+    weight: 3,
+    lineCap: 'round'
+  }
+}).on('loaded', function(e) {
+  var gpx = e.target;
+  map.fitToBounds(gpx.getBounds());
+}).addTo(map);
+```
+
+For more information on the available polyline styling options, refer to
+the [Leaflet documentation on
+Polyline](https://leafletjs.com/reference-1.3.0.html#polyline). By
+default, if no styling is available, the line will be drawn in _blue_.
+
+## Caveats
 
 * Distance calculation is relatively accurate, but elevation change
   calculation is not topographically adjusted, so the total elevation

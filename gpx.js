@@ -44,6 +44,8 @@ var _MINUTE_IN_MILLIS = 60 * _SECOND_IN_MILLIS;
 var _HOUR_IN_MILLIS = 60 * _MINUTE_IN_MILLIS;
 var _DAY_IN_MILLIS = 24 * _HOUR_IN_MILLIS;
 
+var _GPX_STYLE_NS = 'http://www.topografix.com/GPX/gpx_style/0/2';
+
 var _DEFAULT_MARKER_OPTS = {
   startIconUrl: 'pin-icon-start.png',
   endIconUrl: 'pin-icon-end.png',
@@ -71,9 +73,7 @@ L.GPX = L.FeatureGroup.extend({
     options.marker_options = this._merge_objs(
       _DEFAULT_MARKER_OPTS,
       options.marker_options || {});
-    options.polyline_options = this._merge_objs(
-      _DEFAULT_POLYLINE_OPTS,
-      options.polyline_options || {});
+    options.polyline_options = options.polyline_options || {};
     options.gpx_options = this._merge_objs(
       _DEFAULT_GPX_OPTS,
       options.gpx_options || {});
@@ -499,8 +499,22 @@ L.GPX = L.FeatureGroup.extend({
       coords.push(ll);
     }
 
+    // check for gpx_style styling extension
+    var polyline_options = this._merge_objs(_DEFAULT_POLYLINE_OPTS, {});
+    var e = line.getElementsByTagNameNS(_GPX_STYLE_NS, 'line');
+    if (e.length > 0) {
+      var _ = e[0].getElementsByTagName('color');
+      if (_.length > 0) polyline_options.color = '#' + _[0].textContent;
+      var _ = e[0].getElementsByTagName('opacity');
+      if (_.length > 0) polyline_options.opacity = _[0].textContent;
+      var _ = e[0].getElementsByTagName('weight');
+      if (_.length > 0) polyline_options.weight = _[0].textContent;
+      var _ = e[0].getElementsByTagName('linecap');
+      if (_.length > 0) polyline_options.lineCap = _[0].textContent;
+    }
+
     // add track
-    var l = new L.Polyline(coords, options.polyline_options);
+    var l = new L.Polyline(coords, this._merge_objs(polyline_options, options.polyline_options));
     this.fire('addline', { line: l, element: line });
     layers.push(l);
 
