@@ -115,7 +115,7 @@ string:
   or `59'32.431`, where `duration` is in
   milliseconds and `hidems` is an optional boolean you can use to request never
   to display millisecond precision.
-* `get_duration_string_iso(duration, hidems)` formats to an ISO like 
+* `get_duration_string_iso(duration, hidems)` formats to an ISO like
   representation like `3:07:48` or `59:32.431`, where `duration` is in
   milliseconds and `hidems` is an optional boolean you can use to request never
   to display millisecond precision.
@@ -141,7 +141,7 @@ can do:
 ```javascript
 var gpx = new L.GPX(gpxFile);
 setInterval(function() {
-	gpx.reload();
+  gpx.reload();
 }, 5000);
 ```
 
