@@ -70,14 +70,14 @@ var _DEFAULT_GPX_OPTS = {
   kilometer_point_options : {
     kilometer_point_color: 'blue',
     kilometer_point_color_text: 'white',
-    kilometer_point_intervall: 1,
+    kilometer_point_interval: 1,
     kilometer_point_radius: 10,
   },
   show_mile_point: true,
   mile_point_options : {
     mile_point_color: 'blue',
     mile_point_color_text: 'white',
-    mile_intervall: 1,
+    mile_interval: 1,
     mile_point_radius: 10,
   },
 };
@@ -504,7 +504,7 @@ L.GPX = L.FeatureGroup.extend({
           if (this._parse_current_kilometer != null) {
             // Kilometer Point
             if (options.gpx_options.show_kilometer_point) {
-              if ((parseInt(this._info.length/1000) - this._parse_current_kilometer) > options.gpx_options.kilometer_point_options.kilometer_point_intervall-1) {
+              if ((parseInt(this._info.length/1000) - this._parse_current_kilometer) > options.gpx_options.kilometer_point_options.kilometer_point_interval-1) {
                 this._parse_current_kilometer = parseInt(this._info.length/1000);
                   var marker = new L.circleMarker(ll, {
                     radius: options.gpx_options.kilometer_point_options.kilometer_point_radius,
@@ -522,7 +522,7 @@ L.GPX = L.FeatureGroup.extend({
             }
             // Mile Point
             if (options.gpx_options.show_mile_point) {
-              if ((parseInt(this.to_miles(this._info.length)/1000) - this._parse_current_mile) > options.gpx_options.mile_point_options.mile_intervall) {
+              if ((parseInt(this.to_miles(this._info.length)/1000) - this._parse_current_mile) > options.gpx_options.mile_point_options.mile_interval-1) {
                 this._parse_current_mile = parseInt(this.to_miles(this._info.length)/1000);
                 var marker = new L.circleMarker(ll, {
                   radius: options.gpx_options.mile_point_options.mile_point_radius,
