@@ -506,7 +506,7 @@ L.GPX = L.FeatureGroup.extend({
             if (options.gpx_options.show_kilometer_point) {
               if ((parseInt(this._info.length/1000) - this._parse_current_kilometer) > options.gpx_options.kilometer_point_options.kilometer_point_interval-1) {
                 this._parse_current_kilometer = parseInt(this._info.length/1000);
-                var icon = L.divIcon({ className: 'kilometer_tooltip', html: this._parse_current_kilometer.toString(), iconSize: options.gpx_options.mile_point_options.kilometer_point_radius });
+                var icon = L.divIcon({ className: 'kilometer_tooltip', html: this._parse_current_kilometer.toString(), iconSize: options.gpx_options.kilometer_point_options.kilometer_point_radius });
                 var marker = L.marker(ll, { icon: icon });
                 kilometer_point_layers.push(marker);
               }
