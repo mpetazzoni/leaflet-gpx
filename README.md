@@ -293,6 +293,8 @@ new L.GPX(app.params.gpx_url, {
 }).on('loaded', function(e) {
   var gpx = e.target;
   map.fitToBounds(gpx.getBounds());
+}).on('error', function(e) {
+  console.log('Error loading file: ' + e.err);
 }).addTo(map);
 ```
 
@@ -310,6 +312,14 @@ contains the following properties:
 
 One use case for those events is for example to attach additional
 content or behavior to the markers that were generated (popups, etc).
+
+`error` events are fired when no layers of the type(s) specified in
+`options.gpx_options.parseElements` can be parsed out of the given
+file. For instance, `error` would be fired if a file with no waypoints
+was attempted to be loaded with `parseElements` set to `['waypoint']`.
+Each `error` event contains the following property:
+
+- `err`: a message with details about the error that occurred.
 
 ## Line styling
 
