@@ -86,6 +86,7 @@ L.GPX = L.FeatureGroup.extend({
     this._gpx = gpx;
     this._layers = {};
     this._init_info();
+    this._waypoints = [];
 
     if (gpx) {
       this._parse(gpx, options, this.options.async);
@@ -221,6 +222,7 @@ L.GPX = L.FeatureGroup.extend({
         function(a, b) { return a.toFixed(2) + ' mi, ' + b.toFixed(0) + ' degrees'; });
       });
   },
+  get_waypoints:     function() { return this._waypoints; },
 
   reload: function() {
     this._init_info();
@@ -364,6 +366,12 @@ L.GPX = L.FeatureGroup.extend({
           symKey = symEl[0].textContent;
         }
 
+        var eleEl = el[i].getElementsByTagName('ele');
+        var ele = '';
+        if (eleEl.length > 0) {
+          ele = eleEl[0].textContent;
+        }
+
         /*
          * Add waypoint marker based on the waypoint symbol key.
          *
@@ -388,6 +396,15 @@ L.GPX = L.FeatureGroup.extend({
             + '", and no fallback configured; ignoring waypoint.');
           continue;
         }
+
+        this._waypoints.push({
+          name: name,
+          coords: ll,
+          desc: desc,
+          ele: ele,
+          symKey: symKey
+        });
+
 
         var marker = new L.Marker(ll, {
           clickable: options.marker_options.clickable,

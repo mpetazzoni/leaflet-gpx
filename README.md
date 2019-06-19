@@ -93,6 +93,7 @@ so in the 'loaded' event handler, calling one of the following methods on the
 * `get_average_hr()`: returns the average heart rate (if available)
 * `get_average_cadence()`: returns the average cadence (if available)
 * `get_average_temp()`: returns the average of the temperature (if available)
+* `get_waypoints()`: returns the list of waypoints with name, coordinates, elevation and description
 
 If you're not a fan of the metric system, you also have the following methods
 at your disposal:
