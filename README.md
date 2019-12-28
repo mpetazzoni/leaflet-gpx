@@ -346,7 +346,7 @@ You can override the style of the lines by passing a `polyline_options`
 object into the `options` argument of the `L.GPX` constructor:
 
 ```javascript
-new L.GPX(app.params.url, {
+new L.GPX(url, {
   polyline_options: {
     color: 'green',
     opacity: 0.75,
@@ -363,6 +363,29 @@ For more information on the available polyline styling options, refer to
 the [Leaflet documentation on
 Polyline](https://leafletjs.com/reference-1.3.0.html#polyline). By
 default, if no styling is available, the line will be drawn in _blue_.
+
+## GPX parsing options
+
+### Multiple track segments within each track
+
+GPX file may contain multiple tracks represented by `<trk>` elements,
+each track possibly composed of multiple segments with `<trkseg>`
+elements. Although this plugin will always represent each GPX route and
+each GPX track as distinct entities with their own start and end
+markers, track segments will by default be joined into a single line.
+
+You can disable this behavior by setting the `joinTrackSegments` flag to
+`false` in the `gpx_options`:
+
+```javascript
+new L.GPX(url, {
+  gpx_options: {
+    joinTrackSegments: false
+  }
+}).on('loaded', function(e) {
+  map.fitBounds(e.target.getBounds());
+}).addTo(map);
+```
 
 ## Caveats
 
