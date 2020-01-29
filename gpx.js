@@ -252,7 +252,7 @@ L.GPX = L.FeatureGroup.extend({
       hr: {avg: 0, _total: 0, _points: []},
       duration: {start: null, end: null, moving: 0, total: 0},
       atemp: {avg: 0, _total: 0, _points: []},
-      cad: {avg: 0, _total: 0, _points: []}
+      cad: {avg: 0, _total: 0, _nonZeroCad: 0, _points: []}
     };
   },
 
@@ -345,7 +345,7 @@ L.GPX = L.FeatureGroup.extend({
     }
 
     this._info.hr.avg = Math.round(this._info.hr._total / this._info.hr._points.length);
-    this._info.cad.avg = Math.round(this._info.cad._total / this._info.cad._points.length);
+    this._info.cad.avg = Math.round(this._info.cad._total / this._info.cad._nonZeroCad);
     this._info.atemp.avg = Math.round(this._info.atemp._total / this._info.atemp._points.length);
 
     // parse waypoints and add markers for each of them
@@ -468,6 +468,9 @@ L.GPX = L.FeatureGroup.extend({
       if (_.length > 0) {
         ll.meta.cad = parseInt(_[0].textContent);
         this._info.cad._points.push([this._info.length, ll.meta.cad]);
+        if(ll.meta.cad > 0) {
+            this._info.cad._nonZeroCad++;
+        }
         this._info.cad._total += ll.meta.cad;
       }
 
