@@ -486,7 +486,7 @@ L.GPX = L.FeatureGroup.extend({
         this._info.elevation.min = ll.meta.ele;
       }
 
-      this._info.elevation._points.push([this._info.length, ll.meta.ele]);
+      this._info.elevation._points.push([this._info.length, ll.meta.ele || 0]);
       this._info.duration.end = ll.meta.time;
 
       if (last != null) {
