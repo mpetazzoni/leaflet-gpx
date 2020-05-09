@@ -51,7 +51,11 @@ var _DEFAULT_MARKER_OPTS = {
   endIconUrl: 'pin-icon-end.png',
   shadowUrl: 'pin-shadow.png',
   wptIcons: [],
+  wptIconsType: [],
   wptIconUrls : {
+    '': 'pin-icon-wpt.png',
+  },
+  wptIconTypeUrls : {
     '': 'pin-icon-wpt.png',
   },
   pointMatchers: [],
@@ -373,7 +377,13 @@ L.GPX = L.FeatureGroup.extend({
         if (symEl.length > 0) {
           symKey = symEl[0].textContent;
         }
-
+		
+		var typeEl = el[i].getElementsByTagName('type');
+		var typeKey = '';
+		if (typeEl.length > 0) {
+          typeKey = typeEl[0].textContent;
+        }
+		
         /*
          * Add waypoint marker based on the waypoint symbol key.
          *
@@ -384,12 +394,18 @@ L.GPX = L.FeatureGroup.extend({
          */
         var wptIcons = options.marker_options.wptIcons;
         var wptIconUrls = options.marker_options.wptIconUrls;
+		var wptIconsType = options.marker_options.wptIconsType;
+        var wptIconTypeUrls = options.marker_options.wptIconTypeUrls;
         var symIcon;
         if (wptIcons && wptIcons[symKey]) {
           symIcon = wptIcons[symKey];
-        } else if (wptIconUrls && wptIconUrls[symKey]) {
+		} else if (wptIconsType && wptIconsType[typeKey]){
+		  symIcon = wptIconsType[typeKey];
+        } else if (wptIconUrls && wptIconUrls[symKey]){
           symIcon = new L.GPXTrackIcon({iconUrl: wptIconUrls[symKey]});
-        } else if (wptIcons && wptIcons['']) {
+        } else if (wptIconTypeUrls && wptIconTypeUrls[typeKey]){
+		  symIcon = new L.GPXTrackIcon({iconUrl: wptIconTypeUrls[typeKey]});	
+		} else if (wptIcons && wptIcons['']) {
           symIcon = wptIcons[''];
         } else if (wptIconUrls && wptIconUrls['']) {
           symIcon = new L.GPXTrackIcon({iconUrl: wptIconUrls['']});
