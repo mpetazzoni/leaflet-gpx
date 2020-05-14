@@ -378,9 +378,9 @@ L.GPX = L.FeatureGroup.extend({
           symKey = symEl[0].textContent;
         }
 		
-        var typeEl = el[i].getElementsByTagName('type');
-        var typeKey = '';
-        if (typeEl.length > 0) {
+		var typeEl = el[i].getElementsByTagName('type');
+		var typeKey = '';
+		if (typeEl.length > 0) {
           typeKey = typeEl[0].textContent;
         }
 		
@@ -394,13 +394,13 @@ L.GPX = L.FeatureGroup.extend({
          */
         var wptIcons = options.marker_options.wptIcons;
         var wptIconUrls = options.marker_options.wptIconUrls;
-        var wptIconsType = options.marker_options.wptIconsType;
+		var wptIconsType = options.marker_options.wptIconsType;
         var wptIconTypeUrls = options.marker_options.wptIconTypeUrls;
         var symIcon;
         if (wptIcons && wptIcons[symKey]) {
           symIcon = wptIcons[symKey];
-        } else if (wptIconsType && wptIconsType[typeKey]){
-          symIcon = wptIconsType[typeKey];
+		} else if (wptIconsType && wptIconsType[typeKey]){
+		  symIcon = wptIconsType[typeKey];
         } else if (wptIconUrls && wptIconUrls[symKey]){
           symIcon = new L.GPXTrackIcon({iconUrl: wptIconUrls[symKey]});
         } else if (wptIconTypeUrls && wptIconTypeUrls[typeKey]){
@@ -418,8 +418,7 @@ L.GPX = L.FeatureGroup.extend({
         var marker = new L.Marker(ll, {
           clickable: options.marker_options.clickable,
           title: name,
-          icon: symIcon,
-          type: 'waypoint'
+          icon: symIcon
         });
         marker.bindPopup("<b>" + name + "</b>" + (desc.length > 0 ? '<br>' + desc : '')).openPopup();
         this.fire('addpoint', { point: marker, point_type: 'waypoint', element: el[i] });
