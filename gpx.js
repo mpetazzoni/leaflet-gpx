@@ -404,8 +404,8 @@ L.GPX = L.FeatureGroup.extend({
         } else if (wptIconUrls && wptIconUrls[symKey]){
           symIcon = new L.GPXTrackIcon({iconUrl: wptIconUrls[symKey]});
         } else if (wptIconTypeUrls && wptIconTypeUrls[typeKey]){
-		  symIcon = new L.GPXTrackIcon({iconUrl: wptIconTypeUrls[typeKey]});	
-		} else if (wptIcons && wptIcons['']) {
+          symIcon = new L.GPXTrackIcon({iconUrl: wptIconTypeUrls[typeKey]});	
+        } else if (wptIcons && wptIcons['']) {
           symIcon = wptIcons[''];
         } else if (wptIconUrls && wptIconUrls['']) {
           symIcon = new L.GPXTrackIcon({iconUrl: wptIconUrls['']});
