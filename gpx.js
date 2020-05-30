@@ -276,8 +276,13 @@ L.GPX = L.FeatureGroup.extend({
     req.send(null);
   },
 
+  _isXMLDoc: function(elem) {
+	var documentElement = (elem ? elem.ownerDocument || elem : 0).documentElement;
+	return documentElement ? documentElement.nodeName !== "HTML" : false;
+  },
+
   _parse: function(input, options, async) {
-    var _this = this;
+    var _in, _this = this;
     var cb = function(gpx, options) {
       var layers = _this._parse_gpx_data(gpx, options);
       if (!layers) {
@@ -287,17 +292,21 @@ L.GPX = L.FeatureGroup.extend({
       _this.addLayer(layers);
       _this.fire('loaded', { layers: layers, element: gpx });
     }
-    if (input.substr(0,1)==='<') { // direct XML has to start with a <
+    if (this._isXMLDoc(input)) {
+      _in = input;
+    } else if (input.substr(0,1)==='<') { // direct XML has to start with a <
       var parser = new DOMParser();
-      if (async) {
-        setTimeout(function() {
-          cb(parser.parseFromString(input, "text/xml"), options);
-        });
-      } else {
-        cb(parser.parseFromString(input, "text/xml"), options);
-      }
+      _in = parser.parseFromString(input, "text/xml");
     } else {
       this._load_xml(input, cb, options, async);
+      return;
+    }
+    if (async) {
+      setTimeout(function() {
+        cb(_in, options);
+      });
+    } else {
+      cb(_in, options);
     }
   },
 
