@@ -387,6 +387,25 @@ new L.GPX(url, {
 }).addTo(map);
 ```
 
+### Set which elements are shown on the map
+
+GPX file may contain tracks, routes and waypoints and in standard configurations
+all are shown.
+
+You can explicitly tell which elements to show by setting the `parseElements` flag to
+`[ 'track', 'waypoint' ]` in the `gpx_options`:
+
+```javascript
+new L.GPX(url, {
+  gpx_options: {
+    parseElements: [ 'track', 'waypoint']
+  }
+}).on('loaded', function(e) {
+  map.fitBounds(e.target.getBounds());
+}).addTo(map);
+```
+
+
 ## Caveats
 
 * Distance calculation is relatively accurate, but elevation change
