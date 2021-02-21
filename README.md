@@ -33,13 +33,13 @@ scripts in your HTML page:
 ```html
 <html>
   <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
     <!-- ... -->
   </head>
   <body>
     <!-- ... -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.4.0/gpx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.5.1/gpx.min.js"></script>
   </body>
 </html>
 ```
@@ -248,7 +248,8 @@ markers_).
 
 Each named point in the GPX track is evaluated against those rules and
 a marker is created with the point's name as label from the first
-matching rule.
+matching rule. This also applies to named waypoints, but keep in mind
+that waypoint icons rules take precedence over point matchers.
 
 ```javascript
 new L.GPX(app.params.gpx_url, {
