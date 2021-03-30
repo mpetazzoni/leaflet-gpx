@@ -361,10 +361,10 @@ L.GPX = L.FeatureGroup.extend({
             el[i].getAttribute('lon'));
 
         var nameEl = el[i].getElementsByTagName('name');
-        var name = nameEl.length > 0 ? nameEl[0].textContent : null;
+        var name = nameEl.length > 0 ? nameEl[0].textContent : '';
 
         var descEl = el[i].getElementsByTagName('desc');
-        var desc = descEl.length > 0 ? descEl[0].textContent : null;
+        var desc = descEl.length > 0 ? descEl[0].textContent : '';
 
         var symEl = el[i].getElementsByTagName('sym');
         var symKey = symEl.length > 0 ? symEl[0].textContent : null;
