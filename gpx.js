@@ -423,7 +423,7 @@ L.GPX = L.FeatureGroup.extend({
           icon: symIcon,
           type: 'waypoint'
         });
-        marker.bindPopup("<b>" + name + "</b>" + (desc.length > 0 ? '<br>' + desc : '')).openPopup();
+        marker.bindPopup("<b>" + name + "</b>" + ((desc && desc.length > 0) ? '<br>' + desc : '')).openPopup();
         this.fire('addpoint', { point: marker, point_type: 'waypoint', element: el[i] });
         layers.push(marker);
       }
