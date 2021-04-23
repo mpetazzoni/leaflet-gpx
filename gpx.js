@@ -59,7 +59,7 @@ var _DEFAULT_MARKER_OPTS = {
     '': 'pin-icon-wpt.png',
   },
   pointMatchers: [],
-  iconSize: [33, 50],
+  iconSize: [33, 45],
   shadowSize: [50, 50],
   iconAnchor: [16, 45],
   shadowAnchor: [16, 47],
