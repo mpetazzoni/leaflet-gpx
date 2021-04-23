@@ -461,6 +461,10 @@ L.GPX = L.FeatureGroup.extend({
       _ = el[i].getElementsByTagName('ele');
       if (_.length > 0) {
         ll.meta.ele = parseFloat(_[0].textContent);
+      } else {
+        // If the point doesn't have an <ele> tag, assume it has the same
+        // elevation as the point before it (if it had one).
+        ll.meta.ele = last.meta.ele;
       }
 
       _ = el[i].getElementsByTagName('name');
