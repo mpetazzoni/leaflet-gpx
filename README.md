@@ -17,7 +17,7 @@ interval by setting `max_point_interval`, in milliseconds, in the options
 passed to the `GPX` constructor.
 
 I've put together a complete example as a
-[demo](http://mpetazzoni.github.com/leaflet-gpx/).
+[demo](http://mpetazzoni.github.io/leaflet-gpx/).
 
 ## License
 
