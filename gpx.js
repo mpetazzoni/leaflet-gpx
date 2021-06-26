@@ -137,6 +137,8 @@ L.GPX = L.FeatureGroup.extend({
   to_ft:               function(v) { return v * 3.28084; },
   m_to_km:             function(v) { return v / 1000; },
   m_to_mi:             function(v) { return v / 1609.34; },
+  ms_to_kmh:           function(v) { return v * 3.6; },
+  ms_to_mih:           function(v) { return v / 1609.34 * 3600; },
 
   get_name:            function() { return this._info.name; },
   get_desc:            function() { return this._info.desc; },
@@ -181,6 +183,23 @@ L.GPX = L.FeatureGroup.extend({
   get_elevation_min:      function() { return this._info.elevation.min; },
   get_elevation_max_imp:  function() { return this.to_ft(this.get_elevation_max()); },
   get_elevation_min_imp:  function() { return this.to_ft(this.get_elevation_min()); },
+
+  get_speed_data:         function() {
+    var _this = this;
+    return this._info.speed._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_km, _this.ms_to_kmh,
+        function(a, b) { return a.toFixed(2) + ' km, ' + b.toFixed(2) + ' km/h'; });
+      });
+  },
+  get_speed_data_imp: function() {
+    var _this = this;
+    return this._info.elevation._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_mi, _this.ms_to_mih,
+        function(a, b) { return a.toFixed(2) + ' mi, ' + b.toFixed(2) + ' mi/h'; });
+      });
+  },
+  get_speed_max:          function() { return this.m_to_km(this._info.speed.max) * 3600; },
+  get_elevation_max_imp:  function() { return this.to_miles(this.get_speed_max()); },
 
   get_average_hr:         function() { return this._info.hr.avg; },
   get_average_temp:         function() { return this._info.atemp.avg; },
@@ -253,6 +272,7 @@ L.GPX = L.FeatureGroup.extend({
       name: null,
       length: 0.0,
       elevation: {gain: 0.0, loss: 0.0, max: 0.0, min: Infinity, _points: []},
+      speed : {max: 0.0, _points: []},
       hr: {avg: 0, _total: 0, _points: []},
       duration: {start: null, end: null, moving: 0, total: 0},
       atemp: {avg: 0, _total: 0, _points: []},
