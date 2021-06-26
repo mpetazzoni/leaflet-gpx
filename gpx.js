@@ -449,7 +449,7 @@ L.GPX = L.FeatureGroup.extend({
       var _, ll = new L.LatLng(
         el[i].getAttribute('lat'),
         el[i].getAttribute('lon'));
-      ll.meta = { time: null, ele: null, hr: null, cad: null, atemp: null };
+      ll.meta = { time: null, ele: null, hr: null, cad: null, atemp: null, speed: null };
 
       _ = el[i].getElementsByTagName('time');
       if (_.length > 0) {
@@ -465,6 +465,15 @@ L.GPX = L.FeatureGroup.extend({
         // If the point doesn't have an <ele> tag, assume it has the same
         // elevation as the point before it (if it had one).
         ll.meta.ele = last.meta.ele;
+      }
+
+      _ = el[i].getElementsByTagName('speed');
+      if (_.length > 0) {
+        ll.meta.speed = parseFloat(_[0].textContent);
+      } else {
+        // If the point doesn't have an <speed> tag, assume it has the same
+        // speed as the point before it (if it had one).
+        ll.meta.speed = last.meta.speed;
       }
 
       _ = el[i].getElementsByTagName('name');
@@ -510,6 +519,13 @@ L.GPX = L.FeatureGroup.extend({
       }
 
       this._info.elevation._points.push([this._info.length, ll.meta.ele]);
+
+      if (ll.meta.speed > this._info.speed.max) {
+        this._info.speed.max = ll.meta.speed;
+      }
+
+      this._info.speed._points.push([this._info.length, ll.meta.speed]);
+
       this._info.duration.end = ll.meta.time;
 
       if (last != null) {
