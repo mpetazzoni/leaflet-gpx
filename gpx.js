@@ -199,7 +199,7 @@ L.GPX = L.FeatureGroup.extend({
       });
   },
   get_speed_max:          function() { return this.m_to_km(this._info.speed.max) * 3600; },
-  get_elevation_max_imp:  function() { return this.to_miles(this.get_speed_max()); },
+  get_speed_max_imp:      function() { return this.to_miles(this.get_speed_max()); },
 
   get_average_hr:         function() { return this._info.hr.avg; },
   get_average_temp:         function() { return this._info.atemp.avg; },
@@ -477,6 +477,7 @@ L.GPX = L.FeatureGroup.extend({
       } else {
         ll.meta.time = new Date('1970-01-01T00:00:00');
       }
+      var time_diff = last != null ? Math.abs(ll.meta.time - last.meta.time) : 0;
 
       _ = el[i].getElementsByTagName('ele');
       if (_.length > 0) {
@@ -486,14 +487,15 @@ L.GPX = L.FeatureGroup.extend({
         // elevation as the point before it (if it had one).
         ll.meta.ele = last.meta.ele;
       }
+      var ele_diff = last != null ? ll.meta.ele - last.meta.ele : 0;
+      var dist_3d = last != null ? this._dist3d(last, ll) : 0;
 
       _ = el[i].getElementsByTagName('speed');
       if (_.length > 0) {
         ll.meta.speed = parseFloat(_[0].textContent);
       } else {
-        // If the point doesn't have an <speed> tag, assume it has the same
-        // speed as the point before it (if it had one).
-        ll.meta.speed = last.meta.speed;
+        // speed in meter per second
+        ll.meta.speed = time_diff > 0 ? 1000.0 * dist_3d / time_diff : 0;
       }
 
       _ = el[i].getElementsByTagName('name');
@@ -533,38 +535,31 @@ L.GPX = L.FeatureGroup.extend({
       if (ll.meta.ele > this._info.elevation.max) {
         this._info.elevation.max = ll.meta.ele;
       }
-
       if (ll.meta.ele < this._info.elevation.min) {
         this._info.elevation.min = ll.meta.ele;
       }
-
       this._info.elevation._points.push([this._info.length, ll.meta.ele]);
 
       if (ll.meta.speed > this._info.speed.max) {
         this._info.speed.max = ll.meta.speed;
       }
-
       this._info.speed._points.push([this._info.length, ll.meta.speed]);
 
-      this._info.duration.end = ll.meta.time;
-
-      if (last != null) {
-        this._info.length += this._dist3d(last, ll);
-
-        var t = ll.meta.ele - last.meta.ele;
-        if (t > 0) {
-          this._info.elevation.gain += t;
-        } else {
-          this._info.elevation.loss += Math.abs(t);
-        }
-
-        t = Math.abs(ll.meta.time - last.meta.time);
-        this._info.duration.total += t;
-        if (t < options.max_point_interval) {
-          this._info.duration.moving += t;
-        }
-      } else if (this._info.duration.start == null) {
+      if ((last == null) && (this._info.duration.start == null)) {
         this._info.duration.start = ll.meta.time;
+      }
+      this._info.duration.end = ll.meta.time;
+      this._info.duration.total += time_diff;
+      if (time_diff < options.max_point_interval) {
+        this._info.duration.moving += time_diff;
+      }
+
+      this._info.length += dist_3d;
+
+      if (ele_diff > 0) {
+        this._info.elevation.gain += ele_diff;
+      } else {
+        this._info.elevation.loss += Math.abs(ele_diff);
       }
 
       last = ll;
