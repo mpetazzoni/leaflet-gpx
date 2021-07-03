@@ -137,6 +137,8 @@ L.GPX = L.FeatureGroup.extend({
   to_ft:               function(v) { return v * 3.28084; },
   m_to_km:             function(v) { return v / 1000; },
   m_to_mi:             function(v) { return v / 1609.34; },
+  ms_to_kmh:           function(v) { return v * 3.6; },
+  ms_to_mih:           function(v) { return v / 1609.34 * 3600; },
 
   get_name:            function() { return this._info.name; },
   get_desc:            function() { return this._info.desc; },
@@ -181,6 +183,23 @@ L.GPX = L.FeatureGroup.extend({
   get_elevation_min:      function() { return this._info.elevation.min; },
   get_elevation_max_imp:  function() { return this.to_ft(this.get_elevation_max()); },
   get_elevation_min_imp:  function() { return this.to_ft(this.get_elevation_min()); },
+
+  get_speed_data:         function() {
+    var _this = this;
+    return this._info.speed._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_km, _this.ms_to_kmh,
+        function(a, b) { return a.toFixed(2) + ' km, ' + b.toFixed(2) + ' km/h'; });
+      });
+  },
+  get_speed_data_imp: function() {
+    var _this = this;
+    return this._info.elevation._points.map(
+      function(p) { return _this._prepare_data_point(p, _this.m_to_mi, _this.ms_to_mih,
+        function(a, b) { return a.toFixed(2) + ' mi, ' + b.toFixed(2) + ' mi/h'; });
+      });
+  },
+  get_speed_max:          function() { return this.m_to_km(this._info.speed.max) * 3600; },
+  get_speed_max_imp:      function() { return this.to_miles(this.get_speed_max()); },
 
   get_average_hr:         function() { return this._info.hr.avg; },
   get_average_temp:         function() { return this._info.atemp.avg; },
@@ -253,6 +272,7 @@ L.GPX = L.FeatureGroup.extend({
       name: null,
       length: 0.0,
       elevation: {gain: 0.0, loss: 0.0, max: 0.0, min: Infinity, _points: []},
+      speed : {max: 0.0, _points: []},
       hr: {avg: 0, _total: 0, _points: []},
       duration: {start: null, end: null, moving: 0, total: 0},
       atemp: {avg: 0, _total: 0, _points: []},
@@ -449,7 +469,7 @@ L.GPX = L.FeatureGroup.extend({
       var _, ll = new L.LatLng(
         el[i].getAttribute('lat'),
         el[i].getAttribute('lon'));
-      ll.meta = { time: null, ele: null, hr: null, cad: null, atemp: null };
+      ll.meta = { time: null, ele: null, hr: null, cad: null, atemp: null, speed: null };
 
       _ = el[i].getElementsByTagName('time');
       if (_.length > 0) {
@@ -457,6 +477,7 @@ L.GPX = L.FeatureGroup.extend({
       } else {
         ll.meta.time = new Date('1970-01-01T00:00:00');
       }
+      var time_diff = last != null ? Math.abs(ll.meta.time - last.meta.time) : 0;
 
       _ = el[i].getElementsByTagName('ele');
       if (_.length > 0) {
@@ -465,6 +486,16 @@ L.GPX = L.FeatureGroup.extend({
         // If the point doesn't have an <ele> tag, assume it has the same
         // elevation as the point before it (if it had one).
         ll.meta.ele = last.meta.ele;
+      }
+      var ele_diff = last != null ? ll.meta.ele - last.meta.ele : 0;
+      var dist_3d = last != null ? this._dist3d(last, ll) : 0;
+
+      _ = el[i].getElementsByTagName('speed');
+      if (_.length > 0) {
+        ll.meta.speed = parseFloat(_[0].textContent);
+      } else {
+        // speed in meter per second
+        ll.meta.speed = time_diff > 0 ? 1000.0 * dist_3d / time_diff : 0;
       }
 
       _ = el[i].getElementsByTagName('name');
@@ -504,31 +535,31 @@ L.GPX = L.FeatureGroup.extend({
       if (ll.meta.ele > this._info.elevation.max) {
         this._info.elevation.max = ll.meta.ele;
       }
-
       if (ll.meta.ele < this._info.elevation.min) {
         this._info.elevation.min = ll.meta.ele;
       }
-
       this._info.elevation._points.push([this._info.length, ll.meta.ele]);
-      this._info.duration.end = ll.meta.time;
 
-      if (last != null) {
-        this._info.length += this._dist3d(last, ll);
+      if (ll.meta.speed > this._info.speed.max) {
+        this._info.speed.max = ll.meta.speed;
+      }
+      this._info.speed._points.push([this._info.length, ll.meta.speed]);
 
-        var t = ll.meta.ele - last.meta.ele;
-        if (t > 0) {
-          this._info.elevation.gain += t;
-        } else {
-          this._info.elevation.loss += Math.abs(t);
-        }
-
-        t = Math.abs(ll.meta.time - last.meta.time);
-        this._info.duration.total += t;
-        if (t < options.max_point_interval) {
-          this._info.duration.moving += t;
-        }
-      } else if (this._info.duration.start == null) {
+      if ((last == null) && (this._info.duration.start == null)) {
         this._info.duration.start = ll.meta.time;
+      }
+      this._info.duration.end = ll.meta.time;
+      this._info.duration.total += time_diff;
+      if (time_diff < options.max_point_interval) {
+        this._info.duration.moving += time_diff;
+      }
+
+      this._info.length += dist_3d;
+
+      if (ele_diff > 0) {
+        this._info.elevation.gain += ele_diff;
+      } else {
+        this._info.elevation.loss += Math.abs(ele_diff);
       }
 
       last = ll;

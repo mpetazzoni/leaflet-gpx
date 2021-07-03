@@ -90,6 +90,7 @@ so in the 'loaded' event handler, calling one of the following methods on the
 * `get_elevation_max()`: returns the highest elevation, in meters
 * `get_elevation_gain()`: returns the cumulative elevation gain, in meters
 * `get_elevation_loss()`: returns the cumulative elevation loss, in meters
+* `get_speed_max()`: returns the maximum speed in km per hour
 * `get_average_hr()`: returns the average heart rate (if available)
 * `get_average_cadence()`: returns the average cadence (if available)
 * `get_average_temp()`: returns the average of the temperature (if available)
@@ -106,6 +107,7 @@ at your disposal:
 * `get_elevation_max_imp()`: returns the highest elevation, in feet
 * `get_elevation_gain_imp()`: returns the cumulative elevation gain, in feet
 * `get_elevation_loss_imp()`: returns the cumulative elevation loss, in feet
+* `get_speed_max_imp()`: returns the maximum speed in miles per hour
 
 The reason why these methods return milliseconds is that you have at your
 disposal nice helper methods to format a duration in milliseconds into a cool
@@ -123,6 +125,7 @@ string:
 You can also get full elevation, heartrate, cadence and temperature data with:
 
 * `get_elevation_data()` and `get_elevation_data_imp()`
+* `get_speed_data` and `get_speed_data_imp()`
 * `get_heartrate_data()` and `get_heartrate_data_imp()`
 * `get_cadence_data()` and `get_cadence_data_imp()`
 * `get_temp_data()` and `get_temp_data_imp()`
