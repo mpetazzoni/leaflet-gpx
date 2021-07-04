@@ -617,6 +617,12 @@ L.GPX = L.FeatureGroup.extend({
       if (_.length > 0) style.weight = _[0].textContent;
       var _ = e[0].getElementsByTagName('linecap');
       if (_.length > 0) style.lineCap = _[0].textContent;
+      var _ = e[0].getElementsByTagName('lineJoin');
+      if (_.length > 0) style.lineJoin = _[0].textContent;
+      var _ = e[0].getElementsByTagName('dashArray');
+      if (_.length > 0) style.dashArray = _[0].textContent;
+      var _ = e[0].getElementsByTagName('dashOffset');
+      if (_.length > 0) style.dashOffset = _[0].textContent;
     }
     return this._merge_objs(style, overrides)
   },
