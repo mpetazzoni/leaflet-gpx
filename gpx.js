@@ -617,11 +617,11 @@ L.GPX = L.FeatureGroup.extend({
       if (_.length > 0) style.weight = _[0].textContent;
       var _ = e[0].getElementsByTagName('linecap');
       if (_.length > 0) style.lineCap = _[0].textContent;
-      var _ = e[0].getElementsByTagName('lineJoin');
+      var _ = e[0].getElementsByTagName('linejoin');
       if (_.length > 0) style.lineJoin = _[0].textContent;
-      var _ = e[0].getElementsByTagName('dashArray');
+      var _ = e[0].getElementsByTagName('dasharray');
       if (_.length > 0) style.dashArray = _[0].textContent;
-      var _ = e[0].getElementsByTagName('dashOffset');
+      var _ = e[0].getElementsByTagName('dashoffset');
       if (_.length > 0) style.dashOffset = _[0].textContent;
     }
     return this._merge_objs(style, overrides)

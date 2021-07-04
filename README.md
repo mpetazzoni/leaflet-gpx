@@ -340,9 +340,9 @@ for drawing the corresponding polyline.
       <opacity>0.5</opacity>
       <weight>1</weight>
       <linecap>square</linecap>
-      <lineJoin>square</lineJoin>
-      <dashArray>0,10</dashArray>
-      <dashOffset>3</dashOffset>
+      <linejoin>square</linejoin>
+      <dasharray>0,10</dasharray>
+      <dashoffset>3</dashoffset>
     </line>
   </extensions>
   <trkpt lat="..." lon="..."></trkpt>
