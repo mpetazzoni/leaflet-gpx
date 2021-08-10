@@ -39,7 +39,7 @@ scripts in your HTML page:
   <body>
     <!-- ... -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.5.1/gpx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.5.2/gpx.min.js"></script>
   </body>
 </html>
 ```
