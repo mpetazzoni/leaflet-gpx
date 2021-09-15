@@ -485,7 +485,7 @@ L.GPX = L.FeatureGroup.extend({
       } else {
         // If the point doesn't have an <ele> tag, assume it has the same
         // elevation as the point before it (if it had one).
-        ll.meta.ele = last.meta.ele;
+        ll.meta.ele = last != null ? last.meta.ele : null;
       }
       var ele_diff = last != null ? ll.meta.ele - last.meta.ele : 0;
       var dist_3d = last != null ? this._dist3d(last, ll) : 0;
