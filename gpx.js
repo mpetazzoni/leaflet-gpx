@@ -193,7 +193,7 @@ L.GPX = L.FeatureGroup.extend({
   },
   get_speed_data_imp: function() {
     var _this = this;
-    return this._info.elevation._points.map(
+    return this._info.speed._points.map(
       function(p) { return _this._prepare_data_point(p, _this.m_to_mi, _this.ms_to_mih,
         function(a, b) { return a.toFixed(2) + ' mi, ' + b.toFixed(2) + ' mi/h'; });
       });
