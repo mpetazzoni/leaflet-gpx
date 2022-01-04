@@ -63,7 +63,8 @@ var _DEFAULT_MARKER_OPTS = {
   shadowSize: [50, 50],
   iconAnchor: [16, 45],
   shadowAnchor: [16, 47],
-  clickable: false
+  clickable: false,
+  popupTemplate: function(name, desc) { return `<b>${name}</b>${desc.length > 0 ? '<br>' : ''} ${desc}` }
 };
 var _DEFAULT_POLYLINE_OPTS = {
   color: 'blue'
@@ -443,7 +444,7 @@ L.GPX = L.FeatureGroup.extend({
           icon: symIcon,
           type: 'waypoint'
         });
-        marker.bindPopup("<b>" + name + "</b>" + (desc.length > 0 ? '<br>' + desc : '')).openPopup();
+        marker.bindPopup(options.marker_options.popupTemplate(name, desc)).openPopup();
         this.fire('addpoint', { point: marker, point_type: 'waypoint', element: el[i] });
         layers.push(marker);
       }
