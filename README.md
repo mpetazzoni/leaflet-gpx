@@ -368,7 +368,7 @@ new L.GPX(url, {
 
 For more information on the available polyline styling options, refer to
 the [Leaflet documentation on
-Polyline](https://leafletjs.com/reference-1.3.0.html#polyline). By
+Polyline](https://leafletjs.com/reference.html#polyline). By
 default, if no styling is available, the line will be drawn in _blue_.
 
 ## GPX parsing options
