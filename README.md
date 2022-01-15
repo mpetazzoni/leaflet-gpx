@@ -212,7 +212,10 @@ new L.GPX(app.params.gpx_url, {
 }).addTo(map);
 ```
 
-The content of the popup created for waypoints can be customised by setting `marker_options.popupTemplate` to a function returning the popup content, receiving name and description of the waypoint as arguments. The (simplified) default looks like
+The content of the popup created for waypoints can be customised by setting
+`marker_options.popupTemplate` to a function returning the popup content,
+receiving name and description of the waypoint as arguments. The (simplified)
+default is defined as follows:
 
 ```javascript
 marker_options.popupTemplate = function(name, desc) { return `<b>${name}</b> $desc` };
