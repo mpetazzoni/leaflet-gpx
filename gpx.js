@@ -140,6 +140,7 @@ L.GPX = L.FeatureGroup.extend({
   ms_to_kmh:           function(v) { return v * 3.6; },
   ms_to_mih:           function(v) { return v / 1609.34 * 3600; },
 
+  get_number_of_tracks:function() { return this._info.number_of_tracks; },
   get_name:            function() { return this._info.name; },
   get_desc:            function() { return this._info.desc; },
   get_author:          function() { return this._info.author; },
@@ -269,6 +270,7 @@ L.GPX = L.FeatureGroup.extend({
 
   _init_info: function() {
     this._info = {
+      number_of_tracks: 0,
       name: null,
       length: 0.0,
       elevation: {gain: 0.0, loss: 0.0, max: 0.0, min: Infinity, _points: []},
@@ -324,23 +326,6 @@ L.GPX = L.FeatureGroup.extend({
   _parse_gpx_data: function(xml, options) {
     var i, t, l, el, layers = [];
 
-    var name = xml.getElementsByTagName('name');
-    if (name.length > 0) {
-      this._info.name = name[0].textContent;
-    }
-    var desc = xml.getElementsByTagName('desc');
-    if (desc.length > 0) {
-      this._info.desc = desc[0].textContent;
-    }
-    var author = xml.getElementsByTagName('author');
-    if (author.length > 0) {
-      this._info.author = author[0].textContent;
-    }
-    var copyright = xml.getElementsByTagName('copyright');
-    if (copyright.length > 0) {
-      this._info.copyright = copyright[0].textContent;
-    }
-
     var parseElements = options.gpx_options.parseElements;
     if (parseElements.indexOf('route') > -1) {
       // routes are <rtept> tags inside <rte> sections
@@ -354,7 +339,28 @@ L.GPX = L.FeatureGroup.extend({
       // tracks are <trkpt> tags in one or more <trkseg> sections in each <trk>
       var tracks = xml.getElementsByTagName('trk');
       for (i = 0; i < tracks.length; i++) {
+       	if ((options.hasOwnProperty("trackNumber")) && (i != options.trackNumber))
+       		continue;
+        this._info.number_of_tracks++;
         var track = tracks[i];
+
+        var name = track.getElementsByTagName('name');
+        if (name.length > 0) {
+          this._info.name = name[0].textContent;
+        }
+        var desc = track.getElementsByTagName('desc');
+        if (desc.length > 0) {
+          this._info.desc = desc[0].textContent;
+        }
+        var author = track.getElementsByTagName('author');
+        if (author.length > 0) {
+          this._info.author = author[0].textContent;
+        }
+        var copyright = track.getElementsByTagName('copyright');
+        if (copyright.length > 0) {
+          this._info.copyright = copyright[0].textContent;
+        }
+
         var polyline_options = this._extract_styling(track);
 
         if (options.gpx_options.joinTrackSegments) {
