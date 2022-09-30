@@ -511,6 +511,8 @@ L.GPX = L.FeatureGroup.extend({
         }
       }
 
+      this._info.length += dist_3d;
+
       _ = el[i].getElementsByTagNameNS('*', 'hr');
       if (_.length > 0) {
         ll.meta.hr = parseInt(_[0].textContent);
@@ -553,8 +555,6 @@ L.GPX = L.FeatureGroup.extend({
       if (time_diff < options.max_point_interval) {
         this._info.duration.moving += time_diff;
       }
-
-      this._info.length += dist_3d;
 
       if (ele_diff > 0) {
         this._info.elevation.gain += ele_diff;
