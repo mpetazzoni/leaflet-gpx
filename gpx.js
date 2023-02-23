@@ -79,7 +79,7 @@ L.GPX = L.FeatureGroup.extend({
     options.marker_options = this._merge_objs(
       _DEFAULT_MARKER_OPTS,
       options.marker_options || {});
-    options.polyline_options = options.polyline_options || {};
+    options.polyline_options = options.polyline_options || [];
     options.gpx_options = this._merge_objs(
       _DEFAULT_GPX_OPTS,
       options.gpx_options || {});
@@ -346,7 +346,10 @@ L.GPX = L.FeatureGroup.extend({
       // routes are <rtept> tags inside <rte> sections
       var routes = xml.getElementsByTagName('rte');
       for (i = 0; i < routes.length; i++) {
-        layers = layers.concat(this._parse_segment(routes[i], options, {}, 'rtept'));
+        var route = routes[i];
+        var base_style = this._extract_styling(route);
+        var polyline_options = this._get_polyline_options(options.polyline_options, i);
+        layers = layers.concat(this._parse_segment(routes[i], options, base_style, polyline_options, 'rtept'));
       }
     }
 
@@ -355,14 +358,15 @@ L.GPX = L.FeatureGroup.extend({
       var tracks = xml.getElementsByTagName('trk');
       for (i = 0; i < tracks.length; i++) {
         var track = tracks[i];
-        var polyline_options = this._extract_styling(track);
+        var base_style = this._extract_styling(track);
+        var polyline_options = this._get_polyline_options(options.polyline_options, i);
 
         if (options.gpx_options.joinTrackSegments) {
-          layers = layers.concat(this._parse_segment(track, options, polyline_options, 'trkpt'));
+          layers = layers.concat(this._parse_segment(track, options, base_style, polyline_options, 'trkpt'));
         } else {
           var segments = track.getElementsByTagName('trkseg');
           for (j = 0; j < segments.length; j++) {
-            layers = layers.concat(this._parse_segment(segments[j], options, polyline_options, 'trkpt'));
+            layers = layers.concat(this._parse_segment(segments[j], options, base_style, polyline_options, 'trkpt'));
           }
         }
       }
@@ -456,7 +460,7 @@ L.GPX = L.FeatureGroup.extend({
     }
   },
 
-  _parse_segment: function(line, options, polyline_options, tag) {
+  _parse_segment: function(line, options, base_style, polyline_options, tag) {
     var el = line.getElementsByTagName(tag);
     if (!el.length) return [];
 
@@ -567,7 +571,7 @@ L.GPX = L.FeatureGroup.extend({
     }
 
     // add track
-    var l = new L.Polyline(coords, this._extract_styling(line, polyline_options, options.polyline_options));
+    var l = new L.Polyline(coords, this._extract_styling(line, base_style, polyline_options));
     this.fire('addline', { line: l, element: line });
     layers.push(l);
 
@@ -603,6 +607,17 @@ L.GPX = L.FeatureGroup.extend({
     }
 
     return layers;
+  },
+
+  _get_polyline_options: function(polyline_options, i) {
+    /*
+     * Handle backwards compatibility with polyline_options being provided as a single object.
+     * In this situation, the provided style is expected to apply to all routes and tracks in the file.
+     */
+    if (Array.isArray(polyline_options)) {
+      return polyline_options;
+    }
+    return polyline_options[i] || {};
   },
 
   _extract_styling: function(el, base, overrides) {

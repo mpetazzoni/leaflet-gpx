@@ -350,7 +350,32 @@ for drawing the corresponding polyline.
 ```
 
 You can override the style of the lines by passing a `polyline_options`
-object into the `options` argument of the `L.GPX` constructor:
+array into the `options` argument of the `L.GPX` constructor, each
+element of the array defines the style for the corresponding route
+and/or track in the file (in the same order).
+
+```javascript
+new L.GPX(url, {
+  polyline_options: [{
+    color: 'green',
+    opacity: 0.75,
+    weight: 3,
+    lineCap: 'round'
+  },{
+    color: 'blue',
+    opacity: 0.75,
+    weight: 1
+  }]
+}).on('loaded', function(e) {
+  var gpx = e.target;
+  map.fitToBounds(gpx.getBounds());
+}).addTo(map);
+```
+
+If you have many routes or tracks in your GPX file and you want them to
+share the same styling, you can pass `polyline_options` as a single
+object rather than an array (this is also how `leaflet-gpx` worked
+before the introduction of the array):
 
 ```javascript
 new L.GPX(url, {
