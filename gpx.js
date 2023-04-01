@@ -614,7 +614,7 @@ L.GPX = L.FeatureGroup.extend({
      * Handle backwards compatibility with polyline_options being provided as a single object.
      * In this situation, the provided style is expected to apply to all routes and tracks in the file.
      */
-    if (Array.isArray(polyline_options)) {
+    if (! Array.isArray(polyline_options)) {
       return polyline_options;
     }
     return polyline_options[i] || {};
