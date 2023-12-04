@@ -290,7 +290,7 @@ and the map layers generated. You can listen for those events by
 attaching the corresponding event listener on the `L.GPX` object:
 
 ```javascript
-new L.GPX(app.params.gpx_url, {
+new L.GPX(app.params.gpx_url, async: true, {
   // options
 }).on('addpoint', function(e) {
   console.log('Added ' + e.point_type + ' point: ' + e.point);
@@ -301,6 +301,11 @@ new L.GPX(app.params.gpx_url, {
   console.log('Error loading file: ' + e.err);
 }).addTo(map);
 ```
+
+Note that for your event listeners to be correctly triggered, you need
+to pass `async: true` to the `L.GPX` constructor; otherwise the parsing
+of the GPX happens synchronously in the constructor before you your
+event listeners get registered!
 
 `addpoint` events are fired for every marker added to the map, in
 particular for the start and end points, all the waypoints, and all the
