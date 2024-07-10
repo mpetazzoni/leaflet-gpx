@@ -5,11 +5,14 @@
 [Leaflet](http://www.leafletjs.com) is a Javascript library for displaying
 interactive maps. This plugin, based on the work of [Pavel
 Shramov](http://github.com/shramov) and his
-[leaflet-plugins](http://github.com/shramov/leaflet-plugins), it allows for the
-analysis and parsing of a GPX track in order to display it as a Leaflet map
-layer. As it parses the GPX data, it will record information about the recorded
-track, including total time, moving time, total distance, elevation stats and
-heart-rate.
+[leaflet-plugins](http://github.com/shramov/leaflet-plugins), allows for
+displaying and analyzing GPX tracks and their waypoints so they can be
+displayed on a Leaflet map as a new layer.
+
+As it parses the GPX data, `leaflet-gpx` records information about the
+GPX track, including total time, moving time, total distance, elevation
+stats and heart-rate, and makes it accessible through an exhaustive set
+of accessor methods.
 
 GPX parsing will automatically handle pauses in the track with a default
 tolerance interval of 15 seconds between points. You can configure this
@@ -33,13 +36,13 @@ scripts in your HTML page:
 ```html
 <html>
   <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <!-- ... -->
   </head>
   <body>
     <!-- ... -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.0.0/gpx.min.js"></script>
   </body>
 </html>
 ```
@@ -56,8 +59,8 @@ L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 Displaying a GPX track on it is as easy as:
 
 ```javascript
-var gpx = '...'; // URL to your GPX file or the GPX itself
-new L.GPX(gpx, {async: true}).on('loaded', function(e) {
+var url = '...'; // URL to your GPX file or the GPX itself
+new L.GPX(url, {async: true}).on('loaded', function(e) {
   map.fitBounds(e.target.getBounds());
 }).addTo(map);
 ```
@@ -142,7 +145,7 @@ You can make `leaflet-gpx` reload the source GPX file by calling the
 can do:
 
 ```javascript
-var gpx = new L.GPX(gpxFile);
+var gpx = new L.GPX(url);
 setInterval(function() {
   gpx.reload();
 }, 5000);
@@ -150,80 +153,62 @@ setInterval(function() {
 
 ## About marker icons
 
-By default `gpx.js` will use `pin-icon-start.png`, `pin-icon-end.png` and
-`pin-shadow.png` as the marker icons URLs for, respectively, the start marker,
-the end marker and their drop shadow. Since it might not be convenient that
-these images have to reside under the same directory as your HTML page, it is
-possible to override the marker icon URLs and sizes by passing a
-`marker_options` object to the `GPX` options object.
+### Configuring markers
 
-The field names are the same as for custom Leaflet icons, as explained in the
-[Markers with custom icons](http://leafletjs.com/examples/custom-icons.html)
-page in Leaflet's documentation. The only difference is that instead of
-`iconUrl` you should specify `startIconUrl` and `endIconUrl` for the start and
-end markers, respectively.
-
-Note that you do not need to override all the marker icon options as `gpx.js`
-will use sensible defaults with sizes matching the provided icon images. Here
-is how you would override the URL of the provided icons if you decided to place
-them in an `images/` directory:
+By default, `leaflet-gpx` uses Leaflet's default icon image for all
+markers. You can override this behavior by providing a Leaflet `Icon`
+object, or the path or URL to an image to use as the marker, for any of
+the markers supported by this plugin as part of the `markers` parameter:
 
 ```javascript
-var url = '...'; // URL to your GPX file
 new L.GPX(url, {
   async: true,
-  marker_options: {
-    startIconUrl: 'images/pin-icon-start.png',
-    endIconUrl: 'images/pin-icon-end.png',
-    shadowUrl: 'images/pin-shadow.png'
+  markers: {
+    startIcon: ...,
+    endIcon: ...
+    wptIcons: { ... },
+    wptTypeIcons: { ... },
+    pointMatchers: [ ... ],
   }
 }).on('loaded', function(e) {
   map.fitBounds(e.target.getBounds());
 }).addTo(map);
 ```
 
-## About waypoints
+* `startIcon` is used for the marker at the beginning of the GPX track;
+* `endIcon` is used for the marker at the end of the GPX track;
+* `wptIcons` and `wptTypeIcons` are mappings of waypoint symbols and
+  types to the icon you want to use for each;
+* `pointMatchers` is an array of custom point matchers and their
+  respective icon (see below);
 
-By default `gpx.js` will parse Waypoints from a GPX file. This may also
-be steered via the value `waypoint` in `gpx_options`, e.g.
-`parseElements: ['track', 'route', 'waypoint']`.
+You can also override any of those to `null` to disable the
+corresponding marker altogether.
 
-Waypoint icons: by default the `pin-icon-wpt.png` icon is shown for each
-waypoint. This can be overridden by setting `marker_options.wptIconUrls`
-in the `L.GPX` constructor options, as a mapping from the waypoint "SYM"
-name to a user-supplied icon file or URL. The empty string `''` is used
-by the waypoint tag does not define a "SYM" name. See the example below:
+Here is how you would override the URL of the provided icons for start
+and end markers, but none of the other types of markers:
 
 ```javascript
-new L.GPX(app.params.gpx_url, {
+new L.GPX(url, {
   async: true,
-  marker_options: {
-    wptIconUrls: {
-      '': 'img/gpx/default-waypoint.png',
-      'Geocache Found': 'img/gpx/geocache.png',
-      'Park': 'img/gpx/tree.png'
-    },
-    ...
-    shadowUrl: 'http://github.com/mpetazzoni/leaflet-gpx/raw/master/pin-shadow.png'
+  markers: {
+    startIcon: 'images/pin-icon-start.png',
+    endIcon: 'images/pin-icon-end.png',
   }
-}).on('loaded', function (e) {
-  var gpx = e.target;
-  map.fitBounds(gpx.getBounds());
+}).on('loaded', function(e) {
+  map.fitBounds(e.target.getBounds());
 }).addTo(map);
 ```
 
-## Custom markers
-
-You can also use your own icons/markers if you want to use custom
-markers, for example from `leaflet-awesome-markers`. To specify you own
-markers, set `startIcon`, `endIcon`, and a map of `wptIcons` by waypoint
-symbol (see above). Those should be marker icon objects usable by
-Leaflet as the `icon` property of a `L.Marker` object.
+It's usually preferrable and more flexible to provide a Leaflet `Icon`
+instance directly, for example from
+[leaflet-awesome-markers](https://github.com/lennardv2/Leaflet.awesome-markers). See
+https://leafletjs.com/examples/custom-icons/ for more information.
 
 ```javascript
-new L.GPX(app.params.gpx_url, {
+new L.GPX(url, {
   async: true,
-  marker_options: {
+  markers: {
     wptIcons: {
       'Coffee shop': new L.AwesomeMarkers.icon({
         icon: 'coffee',
@@ -234,8 +219,64 @@ new L.GPX(app.params.gpx_url, {
     }
   }
 }).on('loaded', function (e) {
-  var gpx = e.target;
-  map.fitBounds(gpx.getBounds());
+  map.fitBounds(e.target.getBounds());
+}).addTo(map);
+```
+
+### Marker options
+
+You can fine tune marker options using any of the parameters expected by
+[Leaflet's base L.Icon class](https://leafletjs.com/reference.html#icon)
+using the `marker_options` parameters:
+
+```javascript
+new L.GPX(url, {
+  async: true,
+  marker_options: {
+    iconSize: [38, 95],
+    iconAnchor: [22, 94],
+  }
+}).on('loaded', function(e) {
+  map.fitBounds(e.target.getBounds());
+}).addTo(map);
+```
+### Sensible defaults
+
+Note that you do not need to override all the marker definitions, or
+marker options, when providing the `markers` and `marker_options`
+parameters to the GPX constructor as this plugin will use sensible
+defaults for all of those settings.
+
+## About waypoints
+
+By default, this plugin will parse all Waypoints from a GPX file. This
+can be controlled via the value `waypoint` in `gpx_options`, e.g.
+`parseElements: ['track', 'route', 'waypoint']`.
+
+The icon used in the marker representing each track waypoint is
+determined based on the waypoint's properties, in this order:
+
+* If the waypoint has a `sym` attribute, the `markers.wptIcons[sym]`
+  icon is used;
+* If the waypoint has a `type` attribute, the `markers.wptTypeIcons[type]`
+  icon is used;
+* Point matchers are evaluated in order, if one matches the waypoint's
+  `name` attribute, its icon is used (see _Named markers_ below);
+* If none of the above rules match, the default `''` (empty string) icon
+  entry in `wptIcons` is used.
+
+```javascript
+new L.GPX(url, {
+  async: true,
+  markers: {
+    wptIcons: {
+      '': new L.Icon.Default,
+      'Geocache Found': 'img/gpx/geocache.png',
+      'Park': 'img/gpx/tree.png'
+    },
+  }
+}).on('loaded', function (e) {
+  map.fitBounds(e.target.getBounds());
 }).addTo(map);
 ```
 
@@ -244,10 +285,11 @@ new L.GPX(app.params.gpx_url, {
 GPX points can be named, for example to denote certain POIs (points of
 interest). You can setup rules to match point names to create labeled
 markers for those points by providing a `pointMatchers` array in the
-`marker_options`. Each element in this array must define a `regex` to
-match the point's name and an `icon` object (any `L.Marker` or
-for example an `L.AwesomeMarkers.icon` as shown above in _Custom
-markers_).
+`markers` constructor parameter.
+
+Each element in this array must define a `regex` to match the point's
+name and an `icon` definition (a `L.Icon` or subclass object, or the URL
+to an icon image).
 
 Each named point in the GPX track is evaluated against those rules and
 a marker is created with the point's name as label from the first
@@ -255,7 +297,7 @@ matching rule. This also applies to named waypoints, but keep in mind
 that waypoint icons rules take precedence over point matchers.
 
 ```javascript
-new L.GPX(app.params.gpx_url, {
+new L.GPX(url, {
   async: true,
   marker_options: {
     pointMatchers: [
@@ -278,8 +320,7 @@ new L.GPX(app.params.gpx_url, {
     ]
   }
 }).on('loaded', function(e) {
-  var gpx = e.target;
-  map.fitToBounds(gpx.getBounds());
+  map.fitToBounds(e.target.getBounds());
 }).addTo(map);
 ```
 
@@ -290,7 +331,7 @@ and the map layers generated. You can listen for those events by
 attaching the corresponding event listener on the `L.GPX` object:
 
 ```javascript
-new L.GPX(app.params.gpx_url, async: true, {
+new L.GPX(url, async: true, {
   // options
 }).on('addpoint', function(e) {
   console.log('Added ' + e.point_type + ' point: ' + e.point);
