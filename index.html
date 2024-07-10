@@ -31,35 +31,27 @@
 <html>
   <head>
     <title>leaflet-gpx demo</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <style type="text/css">
-      body { width: 800px; margin: 0 auto; }
-      .gpx { border: 2px #aaa solid; border-radius: 5px;
-        box-shadow: 0 0 3px 3px #ccc;
-        width: 800px; margin: 1em auto; }
+       body { width: 75%; margin: 0 auto; font-family: 'Hiragino Sans', sans-serif; }
+      .gpx { width: 1000px; margin: 1em auto; }
       .gpx header { padding: 0.5em; }
+      h1 a { text-decoration: none; color: black; border-bottom: 1px #444 dotted; }
       .gpx h3 { margin: 0; padding: 0; font-weight: bold; }
-      .gpx .start { font-size: smaller; color: #444; }
-      .gpx .map { border: 1px #888 solid; border-left: none; border-right: none;
-        width: 800px; height: 500px; margin: 0; }
-      .gpx footer { background: #f0f0f0; padding: 0.5em; }
-      .gpx ul.info { list-style: none; margin: 0; padding: 0; font-size: smaller; }
-      .gpx ul.info li { color: #666; padding: 2px; display: inline; }
+      .gpx .map { border: 1px #888 solid; width: 1000px; height: 800px; margin: 0; }
+      .gpx footer { padding: 0.5em; }
+      .gpx ul.info { list-style: none; margin: 1em 0 0 0; padding: 0; font-size: smaller; }
+      .gpx ul.info li { color: #666; display: inline; }
       .gpx ul.info li span { color: black; }
     </style>
   </head>
   <body>
     <section id="demo" class="gpx" data-gpx-source="demo.gpx" data-map-target="demo-map">
       <header>
+        <h1><a href="https://github.com/mpetazzoni/leaflet-gpx">Leaflet GPX</a> Viewer Demo</h1>
         <h3>Loading...</h3>
         <span class="start"></span>
-      </header>
 
-      <article>
-        <div class="map" id="demo-map"></div>
-      </article>
-
-      <footer>
         <ul class="info">
           <li>Distance:&nbsp;<span class="distance"></span>&nbsp;mi</li>
           &mdash; <li>Duration:&nbsp;<span class="duration"></span></li>
@@ -69,11 +61,15 @@
             -<span class="elevation-loss"></span>&nbsp;ft
             (net:&nbsp;<span class="elevation-net"></span>&nbsp;ft)</li>
         </ul>
-      </footer>
+      </header>
+
+      <article>
+        <div class="map" id="demo-map"></div>
+      </article>
     </section>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.5.1/gpx.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.0.0/gpx.js"></script>
     <script type="application/javascript">
       function display_gpx(elt) {
         if (!elt) return;
@@ -86,19 +82,16 @@
         function _c(c) { return elt.getElementsByClassName(c)[0]; }
 
         var map = L.map(mapid);
-        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: 'Map data &copy; <a href="http://www.osm.org">OpenStreetMap</a>'
-        }).addTo(map);
+        var base = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a> hosted by <a href="https://openstreetmap.fr/" target="_blank">OpenStreetMap France</a>'
+        });
+        base.addTo(map);
 
         var control = L.control.layers(null, null).addTo(map);
 
         new L.GPX(url, {
           async: true,
-          marker_options: {
-            startIconUrl: 'pin-icon-start.png',
-            endIconUrl:   'pin-icon-end.png',
-            shadowUrl:    'pin-shadow.png',
-          },
         }).on('loaded', function(e) {
           var gpx = e.target;
           map.fitBounds(gpx.getBounds());
@@ -108,7 +101,7 @@
            * Note: the code below relies on the fact that the demo GPX file is
            * an actual GPS track with timing and heartrate information.
            */
-          _t('h3').textContent = gpx.get_name();
+          _t('h3').innerHTML = '<a href="' + url + '">' + gpx.get_name() + '</a>';
           _c('start').textContent = gpx.get_start_time().toDateString() + ', '
             + gpx.get_start_time().toLocaleTimeString();
           _c('distance').textContent = gpx.get_distance_imp().toFixed(2);
