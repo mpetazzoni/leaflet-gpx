@@ -48,7 +48,7 @@ Usage is very simple:
   <body>
     <div id="map"></div>
     <!-- ... -->
-    <script type="text/javascript">
+    <script type="module">
       const map = L.map('map');
       L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: 'Map data &copy; <a href="http://www.osm.org">OpenStreetMap</a>'
