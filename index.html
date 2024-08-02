@@ -32,6 +32,8 @@
   <head>
     <title>leaflet-gpx demo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.1.0/gpx.js" defer></script>
     <style type="text/css">
        body { width: 75%; margin: 0 auto; font-family: 'Hiragino Sans', sans-serif; }
       .gpx { width: 1000px; margin: 1em auto; }
@@ -68,9 +70,7 @@
       </article>
     </section>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.0.0/gpx.js"></script>
-    <script type="application/javascript">
+    <script type="module">
       function display_gpx(elt) {
         if (!elt) return;
 
