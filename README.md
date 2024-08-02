@@ -30,49 +30,55 @@ information.
 
 ## Usage
 
-Usage is very simple. First, include the Leaflet.js and Leaflet-GPX
-scripts in your HTML page:
+Usage is very simple:
+
+* Include the Leaflet stylesheet and script, and the leaflet-gpx script,
+  in your HTML page;
+* Create your Leaflet map, with your choice of base layer(s);
+* Create the `L.GPX` layer to display your GPX track.
 
 ```html
 <html>
   <head>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.1.0/gpx.min.js" defer></script>
     <!-- ... -->
   </head>
   <body>
+    <div id="map"></div>
     <!-- ... -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.0.0/gpx.min.js"></script>
+    <script type="text/javascript">
+      const map = L.map('map');
+      L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map data &copy; <a href="http://www.osm.org">OpenStreetMap</a>'
+      }).addTo(map);
+
+      const url = '...'; // URL to your GPX file or the GPX itself as a XML string.
+      new L.GPX(url, options).on('loaded', (e) => {
+        map.fitBounds(e.target.getBounds());
+      }).addTo(map);
+     </script>
   </body>
 </html>
 ```
 
-Now, let's consider we have a Leaflet map:
+### Importing from a non-module context
 
 ```javascript
-var map = L.map('map');
+const map = L.map('map');
 L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: 'Map data &copy; <a href="http://www.osm.org">OpenStreetMap</a>'
 }).addTo(map);
+
+await import('gpx.js').then((module) => {
+  new L.GPX(url, options).on('loaded', (e) => {
+    map.fitBounds(e.target.getBounds());
+  }).addTo(map);
+});
 ```
 
-Displaying a GPX track on it is as easy as:
-
-```javascript
-var url = '...'; // URL to your GPX file or the GPX itself
-new L.GPX(url, {async: true}).on('loaded', function(e) {
-  map.fitBounds(e.target.getBounds());
-}).addTo(map);
-```
-
-Some GPX tracks contain the actual route/track twice, both the `<trk>` and
-`<rte>` elements are used. You can tell `leaflet-gpx` which tag to use or to
-use both (which is the default setting for backwards compatibility) with the
-`gpx_options` object in the second argument of the constructor. The member
-`parseElements` controls this behavior, it should be an array that contains
-`'route'` and/or `'track'`.
-
-### Available functions
+## Functions
 
 If you want to display additional information about the GPX track, you can do
 so in the 'loaded' event handler, calling one of the following methods on the
@@ -138,7 +144,7 @@ the distance is either in kilometers or in miles and the elevation in meters or
 feet, depending on whether you use the `_imp` variant or not. Heart rate,
 obviously, doesn't change.
 
-### Reloading
+## Reloading
 
 You can make `leaflet-gpx` reload the source GPX file by calling the
 `reload()` method. For example, to trigger a reload every 5 seconds, you
@@ -443,6 +449,15 @@ Polyline](https://leafletjs.com/reference.html#polyline). By
 default, if no styling is available, the line will be drawn in _blue_.
 
 ## GPX parsing options
+
+### Selecting which elements define the track
+
+Some GPX tracks contain the actual route/track twice, both the `<trk>`
+and `<rte>` elements are used. You can tell `leaflet-gpx` which tag to
+use or to use both (which is the default setting for backwards
+compatibility). The `parseElements` field of `gpx_options` controls this
+behavior. It should be an array that contains `'route'` and/or `'track'`
+and/or `'waypoint'`.
 
 ### Multiple track segments within each track
 

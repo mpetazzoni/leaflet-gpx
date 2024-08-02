@@ -36,7 +36,7 @@
  * rendered on the Leaflet map.
  */
 
-var L = L || require('leaflet');
+'use strict';
 
 var _MAX_POINT_INTERVAL_MS = 15000;
 var _SECOND_IN_MILLIS = 1000;
@@ -695,9 +695,3 @@ L.GPX = L.FeatureGroup.extend({
     return deg * Math.PI / 180;
   }
 });
-
-if (typeof module === 'object' && typeof module.exports === 'object') {
-  module.exports = L;
-} else if (typeof define === 'function' && define.amd) {
-  define(L);
-}
