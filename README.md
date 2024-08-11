@@ -54,8 +54,14 @@ Usage is very simple:
         attribution: 'Map data &copy; <a href="http://www.osm.org">OpenStreetMap</a>'
       }).addTo(map);
 
-      const url = '...'; // URL to your GPX file or the GPX itself as a XML string.
-      new L.GPX(url, options).on('loaded', (e) => {
+      // URL to your GPX file or the GPX itself as a XML string.
+      const url = 'https://mpetazzoni.github.io/leaflet-gpx/demo.gpx';
+      const options = {
+        async: true,
+        polyline_options: { color: 'red' },
+      };
+
+      const gpx = new L.GPX(url, options).on('loaded', (e) => {
         map.fitBounds(e.target.getBounds());
       }).addTo(map);
      </script>
@@ -72,7 +78,7 @@ L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 await import('gpx.js').then((module) => {
-  new L.GPX(url, options).on('loaded', (e) => {
+  new L.GPX('https://...').on('loaded', (e) => {
     map.fitBounds(e.target.getBounds());
   }).addTo(map);
 });
