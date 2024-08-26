@@ -1,6 +1,6 @@
 {
   "name": "leaflet-gpx",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "A Leaflet plugin for showing a GPX track on a map",
   "main": "gpx.js",
   "scripts": {
