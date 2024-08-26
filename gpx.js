@@ -295,7 +295,7 @@ L.GPX = L.FeatureGroup.extend({
         });
       } else if (typeof(value) === 'string') {
         markers[key] = iconize(value);
-      } else if (typeof(value) === 'object') {
+      } else if (typeof(value) === 'object' && value !== null) {
         markers[key] = this._prepare_markers(value);
       }
     });
