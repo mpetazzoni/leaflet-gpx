@@ -140,7 +140,7 @@ string:
 You can also get full elevation, heartrate, cadence and temperature data with:
 
 * `get_elevation_data()` and `get_elevation_data_imp()`
-* `get_speed_data` and `get_speed_data_imp()`
+* `get_speed_data()` and `get_speed_data_imp()`
 * `get_heartrate_data()` and `get_heartrate_data_imp()`
 * `get_cadence_data()` and `get_cadence_data_imp()`
 * `get_temp_data()` and `get_temp_data_imp()`
@@ -215,7 +215,7 @@ new L.GPX(url, {
 It's usually preferrable and more flexible to provide a Leaflet `Icon`
 instance directly, for example from
 [leaflet-awesome-markers](https://github.com/lennardv2/Leaflet.awesome-markers). See
-https://leafletjs.com/examples/custom-icons/ for more information.
+<https://leafletjs.com/examples/custom-icons/> for more information.
 
 ```javascript
 new L.GPX(url, {
@@ -252,6 +252,7 @@ new L.GPX(url, {
   map.fitBounds(e.target.getBounds());
 }).addTo(map);
 ```
+
 ### Sensible defaults
 
 Note that you do not need to override all the marker definitions, or
