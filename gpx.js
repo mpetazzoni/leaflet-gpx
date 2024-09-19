@@ -185,14 +185,14 @@ L.GPX = L.FeatureGroup.extend({
     var _this = this;
     return this._info.elevation._points.map(
       function(p) { return _this._prepare_data_point(p, _this.m_to_km, null,
-        function(a, b) { return this._toFixed_helper(a, 2) + ' km, ' + this._toFixed_helper(b, 0) + ' m'; });
+        function(a, b) { return _this._toFixed_helper(a, 2) + ' km, ' + _this._toFixed_helper(b, 0) + ' m'; });
       });
   },
   get_elevation_data_imp: function() {
     var _this = this;
     return this._info.elevation._points.map(
       function(p) { return _this._prepare_data_point(p, _this.m_to_mi, _this.to_ft,
-        function(a, b) { return this._toFixed_helper(a, 2) + ' mi, ' + this._toFixed_helper(b, 0) + ' ft'; });
+        function(a, b) { return _this._toFixed_helper(a, 2) + ' mi, ' + _this._toFixed_helper(b, 0) + ' ft'; });
       });
   },
   get_elevation_max:      function() { return this._info.elevation.max; },
@@ -204,14 +204,14 @@ L.GPX = L.FeatureGroup.extend({
     var _this = this;
     return this._info.speed._points.map(
       function(p) { return _this._prepare_data_point(p, _this.m_to_km, _this.ms_to_kmh,
-        function(a, b) { return this._toFixed_helper(a, 2) + ' km, ' + this._toFixed_helper(b, 2) + ' km/h'; });
+        function(a, b) { return _this._toFixed_helper(a, 2) + ' km, ' + _this._toFixed_helper(b, 2) + ' km/h'; });
       });
   },
   get_speed_data_imp: function() {
     var _this = this;
     return this._info.speed._points.map(
       function(p) { return _this._prepare_data_point(p, _this.m_to_mi, _this.ms_to_mih,
-        function(a, b) { return this._toFixed_helper(a, 2) + ' mi, ' + this._toFixed_helper(b, 2) + ' mi/h'; });
+        function(a, b) { return _this._toFixed_helper(a, 2) + ' mi, ' + _this._toFixed_helper(b, 2) + ' mi/h'; });
       });
   },
   get_speed_max:          function() { return this.m_to_km(this._info.speed.max) * 3600; },
@@ -224,42 +224,42 @@ L.GPX = L.FeatureGroup.extend({
     var _this = this;
     return this._info.hr._points.map(
       function(p) { return _this._prepare_data_point(p, _this.m_to_km, null,
-        function(a, b) { return this._toFixed_helper(a, 2) + ' km, ' + this._toFixed_helper(b, 0) + ' bpm'; });
+        function(a, b) { return _this._toFixed_helper(a, 2) + ' km, ' + _this._toFixed_helper(b, 0) + ' bpm'; });
       });
   },
   get_heartrate_data_imp: function() {
     var _this = this;
     return this._info.hr._points.map(
       function(p) { return _this._prepare_data_point(p, _this.m_to_mi, null,
-        function(a, b) { return this._toFixed_helper(a, 2) + ' mi, ' + this._toFixed_helper(b, 0) + ' bpm'; });
+        function(a, b) { return _this._toFixed_helper(a, 2) + ' mi, ' + _this._toFixed_helper(b, 0) + ' bpm'; });
       });
   },
   get_cadence_data:     function() {
     var _this = this;
     return this._info.cad._points.map(
       function(p) { return _this._prepare_data_point(p, _this.m_to_km, null,
-        function(a, b) { return this._toFixed_helper(a, 2) + ' km, ' + this._toFixed_helper(b, 0) + ' rpm'; });
+        function(a, b) { return _this._toFixed_helper(a, 2) + ' km, ' + _this._toFixed_helper(b, 0) + ' rpm'; });
       });
   },
   get_temp_data:     function() {
     var _this = this;
     return this._info.atemp._points.map(
       function(p) { return _this._prepare_data_point(p, _this.m_to_km, null,
-        function(a, b) { return this._toFixed_helper(a, 2) + ' km, ' + this._toFixed_helper(b, 0) + ' degrees'; });
+        function(a, b) { return _this._toFixed_helper(a, 2) + ' km, ' + _this._toFixed_helper(b, 0) + ' degrees'; });
       });
   },
   get_cadence_data_imp:     function() {
     var _this = this;
     return this._info.cad._points.map(
       function(p) { return _this._prepare_data_point(p, _this.m_to_mi, null,
-        function(a, b) { return this._toFixed_helper(a, 2) + ' mi, ' + this._toFixed_helper(b, 0) + ' rpm'; });
+        function(a, b) { return _this._toFixed_helper(a, 2) + ' mi, ' + _this._toFixed_helper(b, 0) + ' rpm'; });
       });
   },
   get_temp_data_imp:     function() {
     var _this = this;
     return this._info.atemp._points.map(
       function(p) { return _this._prepare_data_point(p, _this.m_to_mi, null,
-        function(a, b) { return this._toFixed_helper(a, 2) + ' mi, ' + this._toFixed_helper(b, 0) + ' degrees'; });
+        function(a, b) { return _this._toFixed_helper(a, 2) + ' mi, ' + _this._toFixed_helper(b, 0) + ' degrees'; });
       });
   },
 
