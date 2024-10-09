@@ -312,7 +312,7 @@ that waypoint icons rules take precedence over point matchers.
 ```javascript
 new L.GPX(url, {
   async: true,
-  marker_options: {
+  markers: {
     pointMatchers: [
       {
         regex: /Coffee/,
