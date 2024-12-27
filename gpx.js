@@ -68,7 +68,7 @@ var _DEFAULT_MARKERS = {
 var _DEFAULT_MARKER_OPTS = {
   iconSize: [33, 45],
   iconAnchor: [16, 45],
-  clickable: true
+  clickable: false
 };
 
 var _DEFAULT_POLYLINE_OPTS = {
