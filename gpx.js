@@ -616,7 +616,6 @@ L.GPX = L.FeatureGroup.extend({
       // add start pin
       let trackElem = el[0].parentNode.parentNode;
       let trackName = trackElem.getElementsByTagName('name')[0].textContent;
-    //   console.log("start", options.markers.startIcon, trackName)
       var marker = new L.Marker(coords[0], {
         clickable: options.marker_options.clickable,
         icon: options.markers.startIcon,
