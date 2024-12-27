@@ -369,9 +369,9 @@ L.GPX = L.FeatureGroup.extend({
   _parse_gpx_data: function(xml, options) {
     var i, t, l, el, layers = [];
 
-    var nameElements = xml.getElementsByTagName('name');
-    if (nameElements.length > 0) {
-      this._info.name = nameElements[0].textContent;
+    var name = xml.getElementsByTagName('name');
+    if (name.length > 0) {
+      this._info.name = name[0].textContent;
     }
     var desc = xml.getElementsByTagName('desc');
     if (desc.length > 0) {
@@ -628,7 +628,6 @@ L.GPX = L.FeatureGroup.extend({
 
     if (options.markers.endIcon) {
       // add end pin
-      console.log("add end pin")
       var marker = new L.Marker(coords[coords.length-1], {
         clickable: options.marker_options.clickable,
         icon: options.markers.endIcon,
