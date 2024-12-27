@@ -68,7 +68,7 @@ var _DEFAULT_MARKERS = {
 var _DEFAULT_MARKER_OPTS = {
   iconSize: [33, 45],
   iconAnchor: [16, 45],
-  clickable: false
+  clickable: true
 };
 
 var _DEFAULT_POLYLINE_OPTS = {
@@ -369,9 +369,9 @@ L.GPX = L.FeatureGroup.extend({
   _parse_gpx_data: function(xml, options) {
     var i, t, l, el, layers = [];
 
-    var name = xml.getElementsByTagName('name');
-    if (name.length > 0) {
-      this._info.name = name[0].textContent;
+    var nameElements = xml.getElementsByTagName('name');
+    if (nameElements.length > 0) {
+      this._info.name = nameElements[0].textContent;
     }
     var desc = xml.getElementsByTagName('desc');
     if (desc.length > 0) {
@@ -614,23 +614,28 @@ L.GPX = L.FeatureGroup.extend({
 
     if (options.markers.startIcon) {
       // add start pin
+      let trackElem = el[0].parentNode.parentNode;
+      let trackName = trackElem.getElementsByTagName('name')[0].textContent;
+    //   console.log("start", options.markers.startIcon, trackName)
       var marker = new L.Marker(coords[0], {
         clickable: options.marker_options.clickable,
         icon: options.markers.startIcon,
+        title: trackName,
       });
       this.fire('addpoint', { point: marker, point_type: 'start', element: el[0] });
       layers.push(marker);
     }
 
-    if (options.markers.endIcon) {
-      // add end pin
-      var marker = new L.Marker(coords[coords.length-1], {
-        clickable: options.marker_options.clickable,
-        icon: options.markers.endIcon,
-      });
-      this.fire('addpoint', { point: marker, point_type: 'end', element: el[el.length-1] });
-      layers.push(marker);
-    }
+    // if (options.markers.endIcon) {
+    //   // add end pin
+    //   console.log("add end pin")
+    //   var marker = new L.Marker(coords[coords.length-1], {
+    //     clickable: options.marker_options.clickable,
+    //     icon: options.markers.endIcon,
+    //   });
+    //   this.fire('addpoint', { point: marker, point_type: 'end', element: el[el.length-1] });
+    //   layers.push(marker);
+    // }
 
     // add named markers
     for (var i = 0; i < markers.length; i++) {
