@@ -626,16 +626,16 @@ L.GPX = L.FeatureGroup.extend({
       layers.push(marker);
     }
 
-    // if (options.markers.endIcon) {
-    //   // add end pin
-    //   console.log("add end pin")
-    //   var marker = new L.Marker(coords[coords.length-1], {
-    //     clickable: options.marker_options.clickable,
-    //     icon: options.markers.endIcon,
-    //   });
-    //   this.fire('addpoint', { point: marker, point_type: 'end', element: el[el.length-1] });
-    //   layers.push(marker);
-    // }
+    if (options.markers.endIcon) {
+      // add end pin
+      console.log("add end pin")
+      var marker = new L.Marker(coords[coords.length-1], {
+        clickable: options.marker_options.clickable,
+        icon: options.markers.endIcon,
+      });
+      this.fire('addpoint', { point: marker, point_type: 'end', element: el[el.length-1] });
+      layers.push(marker);
+    }
 
     // add named markers
     for (var i = 0; i < markers.length; i++) {
