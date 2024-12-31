@@ -618,7 +618,7 @@ L.GPX = L.FeatureGroup.extend({
         clickable: options.marker_options.clickable,
         icon: options.markers.startIcon,
       });
-      this.fire('addpoint', { point: marker, point_type: 'start', element: el[0] });
+      this.fire('addpoint', { point: marker, point_type: 'start', element: el[0], line: line });
       layers.push(marker);
     }
 
@@ -628,7 +628,7 @@ L.GPX = L.FeatureGroup.extend({
         clickable: options.marker_options.clickable,
         icon: options.markers.endIcon,
       });
-      this.fire('addpoint', { point: marker, point_type: 'end', element: el[el.length-1] });
+      this.fire('addpoint', { point: marker, point_type: 'end', element: el[el.length-1], line: line });
       layers.push(marker);
     }
 
