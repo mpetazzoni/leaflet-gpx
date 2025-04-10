@@ -43,7 +43,9 @@ Usage is very simple:
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.1.2/gpx.min.js" defer></script>
-    <!-- ... -->
+    <style>
+      #map { height: 500px; }
+    </style>
   </head>
   <body>
     <div id="map"></div>
