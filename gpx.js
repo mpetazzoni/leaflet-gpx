@@ -82,6 +82,17 @@ var _DEFAULT_GPX_OPTS = {
 
 L.GPX = L.FeatureGroup.extend({
   initialize: function(gpx, options) {
+    /*
+    * @param {Object} options
+    * @param {number} [options.max_point_interval=_MAX_POINT_INTERVAL_MS] - Maximum time interval in milliseconds between points.
+    * @param {Object} [options.markers=_DEFAULT_MARKERS] - Options for markers.
+    * @param {Object} [options.marker_options=_DEFAULT_MARKER_OPTS] - Options for marker icons.
+    * @param {Array} [options.polyline_options=[]] - Options for polylines.
+    * @param {Object} [options.gpx_options=_DEFAULT_GPX_OPTS] - Options for GPX parsing.
+    * @param {boolean} [options.showDistanceMarkers=false] - Whether to show distance markers along the track.
+    * @param {string} [options.distanceUnit="km"] - Unit for distance markers. Valid values are "km" and "miles".
+    * @param {number} [options.distanceMarkerInterval=1] - Interval for distance markers in the specified unit.
+    */
     options.max_point_interval = options.max_point_interval || _MAX_POINT_INTERVAL_MS;
     options.markers = this._merge_objs(
       _DEFAULT_MARKERS,
@@ -93,6 +104,11 @@ L.GPX = L.FeatureGroup.extend({
     options.gpx_options = this._merge_objs(
       _DEFAULT_GPX_OPTS,
       options.gpx_options || {});
+
+    // Add new options for distance markers
+    options.showDistanceMarkers = typeof options.showDistanceMarkers === 'undefined' ? false : options.showDistanceMarkers;
+    options.distanceUnit = options.distanceUnit || "km";
+    options.distanceMarkerInterval = typeof options.distanceMarkerInterval === 'undefined' ? 1 : options.distanceMarkerInterval;
 
     L.Util.setOptions(this, options);
 
@@ -155,6 +171,17 @@ L.GPX = L.FeatureGroup.extend({
   m_to_mi:             function(v) { return v / 1609.34; },
   ms_to_kmh:           function(v) { return v * 3.6; },
   ms_to_mih:           function(v) { return v / 1609.34 * 3600; },
+
+  _convertDistanceToUnit: function(distanceInMeters, unit) {
+    if (unit === "km") {
+      return distanceInMeters / 1000;
+    } else if (unit === "miles") {
+      return distanceInMeters / 1609.34;
+    }
+    // Default or error handling: return in meters or throw error
+    // For now, assuming unit is always valid as per options.distanceUnit
+    return distanceInMeters / 1000; // Default to km if unit is unrecognized
+  },
 
   get_name:            function() { return this._info.name; },
   get_desc:            function() { return this._info.desc; },
@@ -505,6 +532,11 @@ L.GPX = L.FeatureGroup.extend({
     var markers = [];
     var layers = [];
     var last = null;
+    var cumulativeDistance = 0;
+    // Convert interval to meters for internal calculations
+    var intervalInMeters = options.distanceMarkerInterval * (options.distanceUnit === 'miles' ? 1609.34 : 1000);
+    var nextMarkerDistance = intervalInMeters;
+
 
     for (var i = 0; i < el.length; i++) {
       var _, ll = new L.LatLng(
@@ -530,6 +562,60 @@ L.GPX = L.FeatureGroup.extend({
       }
       var ele_diff = last != null ? ll.meta.ele - last.meta.ele : 0;
       var dist_3d = last != null ? this._dist3d(last, ll) : 0;
+      var previousCumulativeDistance = cumulativeDistance;
+      cumulativeDistance += dist_3d;
+
+      if (options.showDistanceMarkers && options.distanceMarkerInterval > 0 && intervalInMeters > 0) {
+        while (cumulativeDistance >= nextMarkerDistance) {
+          // Interpolate position for the marker
+          var overshoot = cumulativeDistance - nextMarkerDistance;
+          var ratio = (dist_3d - overshoot) / dist_3d;
+          var markerLat, markerLng;
+
+          if (dist_3d === 0) { // Avoid division by zero if points are identical
+            markerLat = ll.lat;
+            markerLng = ll.lng;
+          } else if (last) { // Ensure 'last' is not null
+             // Check if last and ll are different to prevent division by zero if dist_3d is non-zero but points are effectively the same
+            if (ll.lat === last.lat && ll.lng === last.lng) {
+                markerLat = ll.lat;
+                markerLng = ll.lng;
+            } else {
+                markerLat = last.lat + (ll.lat - last.lat) * ratio;
+                markerLng = last.lng + (ll.lng - last.lng) * ratio;
+            }
+          } else { // Fallback to current point if 'last' is null (should only be for the first point if interval is 0 or very small)
+             markerLat = ll.lat;
+             markerLng = ll.lng;
+          }
+          var markerPosition = new L.LatLng(markerLat, markerLng);
+
+          var markerDisplayValue = this._convertDistanceToUnit(nextMarkerDistance, options.distanceUnit);
+          // Display integer if it's a whole number, otherwisetoFixed(1) for miles, toFixed(0) for km (or more based on interval)
+          var labelPrecision = 0;
+          if (options.distanceUnit === 'miles') {
+            labelPrecision = (options.distanceMarkerInterval < 1 || !Number.isInteger(markerDisplayValue * 10) ) ? 1 : 0;
+          } else { // km
+            labelPrecision = (options.distanceMarkerInterval < 1 || !Number.isInteger(markerDisplayValue * 10)) ? 1 : 0;
+          }
+           if (Number.isInteger(markerDisplayValue)) {
+            markerLabel = markerDisplayValue + ' ' + options.distanceUnit;
+          } else {
+            markerLabel = markerDisplayValue.toFixed(labelPrecision) + ' ' + options.distanceUnit;
+          }
+
+          var distanceMarker = new L.Marker(markerPosition, {
+            clickable: options.marker_options.clickable,
+            title: markerLabel,
+            icon: new L.GPXTrackIcon({iconUrl: options.markers.wptIcons[''] ? options.markers.wptIcons[''].options.iconUrl : _DEFAULT_ICON.options.iconUrl }), // Use default waypoint icon or global default
+            isDistanceMarker: true // Property to identify distance markers
+          });
+          distanceMarker.bindPopup("<b>" + markerLabel + "</b>");
+          this.fire('addpoint', { point: distanceMarker, point_type: 'distance', element: el[i] });
+          layers.push(distanceMarker);
+          nextMarkerDistance += intervalInMeters;
+        }
+      }
 
       _ = el[i].getElementsByTagName('speed');
       if (_.length > 0) {

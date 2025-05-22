@@ -457,6 +457,31 @@ the [Leaflet documentation on
 Polyline](https://leafletjs.com/reference.html#polyline). By
 default, if no styling is available, the line will be drawn in _blue_.
 
+## Distance Markers
+
+`leaflet-gpx` can automatically display markers along the GPX track at regular distance intervals. This feature can be configured using the following options when creating an `L.GPX` instance:
+
+*   `showDistanceMarkers` (boolean): Set to `true` to display distance markers along the track. Defaults to `false`.
+*   `distanceUnit` (string): Defines the unit for the distance markers. Valid values are `"km"` (kilometers) or `"miles"`. Defaults to `"km"`.
+*   `distanceMarkerInterval` (number): Specifies the interval at which distance markers should be placed. For example, if `distanceUnit` is `"km"` and `distanceMarkerInterval` is `2`, a marker will be placed every 2 kilometers. Defaults to `1`.
+
+The markers will display the distance from the start of the track (e.g., "1 km", "2 mi", "3.5 km").
+
+Here's an example of how to enable and configure distance markers:
+
+```javascript
+new L.GPX(url, {
+  async: true,
+  polyline_options: { color: 'blue' },
+  showDistanceMarkers: true,
+  distanceUnit: "miles",
+  distanceMarkerInterval: 5
+}).on('loaded', function(e) {
+  map.fitBounds(e.target.getBounds());
+}).addTo(map);
+```
+This configuration will display markers every 5 miles along the track.
+
 ## GPX parsing options
 
 ### Selecting which elements define the track
