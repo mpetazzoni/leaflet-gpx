@@ -31,9 +31,7 @@
 <html>
   <head>
     <title>leaflet-gpx demo</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.1.0/gpx.js" defer></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@2.0.0-alpha.1/dist/leaflet.css" />
     <style type="text/css">
        body { width: 75%; margin: 0 auto; font-family: 'Hiragino Sans', sans-serif; }
       .gpx { width: 1000px; margin: 1em auto; }
@@ -70,7 +68,19 @@
       </article>
     </section>
 
+    <script type="importmap">
+      {
+        "imports": {
+          "leaflet": "https://unpkg.com/leaflet@2.0.0-alpha.1/dist/leaflet.js",
+          "leaflet-gpx": "./gpx.js"
+        }
+      }
+    </script>
+
     <script type="module">
+      import { Map, TileLayer, Control } from 'leaflet';
+      import { GPX } from 'leaflet-gpx';
+
       function display_gpx(elt) {
         if (!elt) return;
 
@@ -81,16 +91,16 @@
         function _t(t) { return elt.getElementsByTagName(t)[0]; }
         function _c(c) { return elt.getElementsByClassName(c)[0]; }
 
-        var map = L.map(mapid);
-        var base = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+        var map = new Map(mapid);
+        var base = new TileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
           maxZoom: 19,
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a> hosted by <a href="https://openstreetmap.fr/" target="_blank">OpenStreetMap France</a>'
         });
         base.addTo(map);
 
-        var control = L.control.layers(null, null).addTo(map);
+        var control = new Control.Layers(null, null).addTo(map);
 
-        new L.GPX(url, {
+        new GPX(url, {
           async: true,
         }).on('loaded', function(e) {
           var gpx = e.target;
