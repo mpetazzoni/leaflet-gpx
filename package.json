@@ -2,6 +2,10 @@
   "name": "leaflet-gpx",
   "version": "2.2.0",
   "description": "A Leaflet plugin for showing a GPX track on a map",
+  "type": "module",
+  "peerDependencies": {
+    "leaflet": "^2.0.0-alpha.1"
+  },
   "main": "gpx.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

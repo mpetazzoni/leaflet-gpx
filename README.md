@@ -30,19 +30,14 @@ information.
 
 ## Usage
 
-Usage is very simple:
+Usage is very simple. As Leaflet 2.0 is an ESM-only library, you should use `leaflet-gpx` as an ES module.
 
-* Include the Leaflet stylesheet and script, and the leaflet-gpx script,
-  in your HTML page;
-* Create your Leaflet map, with your choice of base layer(s);
-* Create the `L.GPX` layer to display your GPX track.
+### Using with an Import Map (Vanilla JS)
 
 ```html
 <html>
   <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/2.1.2/gpx.min.js" defer></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@2.0.0-alpha.1/dist/leaflet.css" />
     <style>
       #map { height: 500px; }
     </style>
@@ -50,9 +45,22 @@ Usage is very simple:
   <body>
     <div id="map"></div>
     <!-- ... -->
+    
+    <script type="importmap">
+      {
+        "imports": {
+          "leaflet": "https://unpkg.com/leaflet@2.0.0-alpha.1/dist/leaflet.js",
+          "leaflet-gpx": "./gpx.js"
+        }
+      }
+    </script>
+    
     <script type="module">
-      const map = L.map('map');
-      L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      import { Map, TileLayer } from 'leaflet';
+      import { GPX } from 'leaflet-gpx';
+
+      const map = new Map('map');
+      new TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: 'Map data &copy; <a href="http://www.osm.org">OpenStreetMap</a>'
       }).addTo(map);
 
@@ -63,7 +71,7 @@ Usage is very simple:
         polyline_options: { color: 'red' },
       };
 
-      const gpx = new L.GPX(url, options).on('loaded', (e) => {
+      new GPX(url, options).on('loaded', (e) => {
         map.fitBounds(e.target.getBounds());
       }).addTo(map);
      </script>
@@ -71,19 +79,19 @@ Usage is very simple:
 </html>
 ```
 
-### Importing from a non-module context
+### Using with a bundler (Vite, Webpack, etc.)
+
+```bash
+npm install leaflet leaflet-gpx
+```
 
 ```javascript
-const map = L.map('map');
-L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: 'Map data &copy; <a href="http://www.osm.org">OpenStreetMap</a>'
-}).addTo(map);
+import { Map, TileLayer } from 'leaflet';
+import { GPX } from 'leaflet-gpx';
 
-await import('gpx.js').then((module) => {
-  new L.GPX('https://...').on('loaded', (e) => {
-    map.fitBounds(e.target.getBounds());
-  }).addTo(map);
-});
+const map = new Map('map');
+// ...
+new GPX(url, options).addTo(map);
 ```
 
 ## Functions
@@ -494,5 +502,3 @@ new L.GPX(url, {
 * Distance calculation is relatively accurate, but elevation change
   calculation is not topographically adjusted, so the total elevation
   gain/loss/change might appear inaccurate in some situations.
-* Currently doesn't seem to work in IE8/9. See #9 and #11 for
-  discussion.
