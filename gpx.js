@@ -659,19 +659,42 @@ export class GPX extends FeatureGroup {
     var style = Object.assign({}, _DEFAULT_POLYLINE_OPTS, base);
     var e = el.getElementsByTagNameNS(_GPX_STYLE_NS, 'line');
     if (e.length > 0) {
-      var _ = e[0].getElementsByTagName('color');
+      var line = e[0];
+      var _ = line.getElementsByTagName('color');
       if (_.length > 0) style.color = '#' + _[0].textContent;
-      var _ = e[0].getElementsByTagName('opacity');
-      if (_.length > 0) style.opacity = _[0].textContent;
-      var _ = e[0].getElementsByTagName('weight');
-      if (_.length > 0) style.weight = _[0].textContent;
-      var _ = e[0].getElementsByTagName('linecap');
+      _ = line.getElementsByTagName('opacity');
+      if (_.length > 0) {
+        var opacity = parseFloat(_[0].textContent);
+        if (!isNaN(opacity)) style.opacity = opacity;
+      }
+      // GPX Style spec uses <width>; fall back to <weight> for backward compat
+      _ = line.getElementsByTagName('width');
+      if (_.length === 0) _ = line.getElementsByTagName('weight');
+      if (_.length > 0) {
+        var width = parseFloat(_[0].textContent);
+        if (!isNaN(width)) style.weight = width;
+      }
+      _ = line.getElementsByTagName('linecap');
       if (_.length > 0) style.lineCap = _[0].textContent;
-      var _ = e[0].getElementsByTagName('linejoin');
+      _ = line.getElementsByTagName('linejoin');
       if (_.length > 0) style.lineJoin = _[0].textContent;
-      var _ = e[0].getElementsByTagName('dasharray');
-      if (_.length > 0) style.dashArray = _[0].textContent;
-      var _ = e[0].getElementsByTagName('dashoffset');
+      // GPX Style spec uses <dasharray><dash mark="x" space="y"/>...</dasharray>;
+      // fall back to reading textContent for backward compat
+      _ = line.getElementsByTagName('dasharray');
+      if (_.length > 0) {
+        var dashes = _[0].getElementsByTagName('dash');
+        if (dashes.length > 0) {
+          var parts = [];
+          for (var i = 0; i < dashes.length; i++) {
+            parts.push(dashes[i].getAttribute('mark') || '0');
+            parts.push(dashes[i].getAttribute('space') || '0');
+          }
+          style.dashArray = parts.join(',');
+        } else {
+          style.dashArray = _[0].textContent;
+        }
+      }
+      _ = line.getElementsByTagName('dashoffset');
       if (_.length > 0) style.dashOffset = _[0].textContent;
     }
     return Object.assign(style, overrides);

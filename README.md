@@ -407,16 +407,22 @@ for drawing the corresponding polyline.
     <line xmlns="http://www.topografix.com/GPX/gpx_style/0/2">
       <color>FF0000</color>
       <opacity>0.5</opacity>
-      <weight>1</weight>
+      <width>1</width>
       <linecap>square</linecap>
-      <linejoin>square</linejoin>
-      <dasharray>0,10</dasharray>
-      <dashoffset>3</dashoffset>
+      <dasharray>
+        <dash mark="0" space="10"/>
+      </dasharray>
     </line>
   </extensions>
   <trkpt lat="..." lon="..."></trkpt>
 </trkseg>
 ```
+
+> **Note:** For backward compatibility, `leaflet-gpx` also accepts `<weight>`
+> as an alias for `<width>`, and `<dasharray>` with flat text content (e.g.
+> `<dasharray>0,10</dasharray>`) instead of `<dash>` child elements. The
+> non-standard `<linejoin>` and `<dashoffset>` elements are also still
+> supported.
 
 You can override the style of the lines by passing a `polyline_options`
 array into the `options` argument of the `L.GPX` constructor, each
