@@ -132,7 +132,7 @@ export class GPX extends FeatureGroup {
 
   get_duration_string_iso(duration, hidems) {
     var s = this.get_duration_string(duration, hidems);
-    return s.replace("'",':').replace('"','');
+    return s.replace(/'/g, ':').replace(/"/g, '');
   }
 
   _toFixed_helper(v, unit = 0) {
