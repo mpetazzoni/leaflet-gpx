@@ -100,7 +100,10 @@ If you want to display additional information about the GPX track, you can do
 so in the 'loaded' event handler, calling one of the following methods on the
 `GPX` object `e.target`:
 
-* `get_name()`: returns the name of the GPX track
+* `get_name()`: returns the GPX document name (from `<metadata>` in GPX 1.1
+  or the root `<gpx>` in GPX 1.0), falling back to the first named route or
+  track in document order. Returns `null` if none is present; author,
+  waypoint and individual point names are not used.
 * `get_distance()`: returns the total track distance, in meters
 * `get_start_time()`: returns a Javascript `Date` object representing the
   starting time
