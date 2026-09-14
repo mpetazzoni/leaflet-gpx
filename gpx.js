@@ -367,9 +367,11 @@ export class GPX extends FeatureGroup {
   _parse_gpx_data(xml, options) {
     var i, t, l, el, layers = [];
 
-    var name = xml.getElementsByTagName('name');
-    if (name.length > 0) {
-      this._info.name = name[0].textContent;
+    var name = xml.documentElement.querySelector(
+      ':scope > name, :scope > metadata > name, :scope > rte > name, :scope > trk > name'
+    );
+    if (name) {
+      this._info.name = name.textContent;
     }
     var desc = xml.getElementsByTagName('desc');
     if (desc.length > 0) {
