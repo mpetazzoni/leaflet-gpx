@@ -28,9 +28,12 @@ const leafletURL = `https://unpkg.com/leaflet@${version}/dist/leaflet.js`;
 let html;
 if (docs) {
   const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
-  const section = readme.split('## Hovering over track points')[1].split('## Line styling')[0];
-  const code = section.match(/```javascript\n([\s\S]*?)```/)[1];
-  assert.equal(code.includes("line.on('mousemove'"), classic, 'README event names must match Leaflet');
+  assert.match(readme, /\]\(examples\/hover\.md\)/, 'README links to the hover example');
+  const example = fs.readFileSync(path.join(root, 'examples/hover.md'), 'utf8');
+  const code = example.match(/```javascript\n([\s\S]*?)```/)[1];
+  for (const event of classic ? ['mousemove', 'mouseout'] : ['pointermove', 'pointerout']) {
+    assert.ok(code.includes(`line.on('${event}'`), 'Example event names must match Leaflet');
+  }
   html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><link rel="stylesheet" href="https://unpkg.com/leaflet@${version}/dist/leaflet.css"><style>body{margin:0}#map{height:600px}</style><div id="map"></div>`;
   html += classic ? `<script src="${leafletURL}"></script><script src="/gpx.js"></script>` :
     `<script type="importmap">{"imports":{"leaflet":"${leafletURL}","leaflet-gpx":"/gpx.js"}}</script>`;
@@ -271,7 +274,7 @@ const server = http.createServer((req, res) => {
       }
     }
     assert.deepEqual(errors, [], 'No browser pageerrors');
-    console.log(JSON.stringify({ mode: docs ? 'README example' : 'live demo', version, metadata, hover: text, pageerrors: errors }, null, 2));
+    console.log(JSON.stringify({ mode: docs ? 'hover example' : 'live demo', version, metadata, hover: text, pageerrors: errors }, null, 2));
   } finally {
     await browser.close();
   }
