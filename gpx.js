@@ -86,9 +86,17 @@ export class GPX extends FeatureGroup {
     options = options || {};
     options.max_point_interval = options.max_point_interval || _MAX_POINT_INTERVAL_MS;
     options.markers = Object.assign({}, _DEFAULT_MARKERS, options.markers || {});
+    // Optional TypeScript fields may be explicitly undefined. Treat container
+    // fields that way just like omitted fields, without changing null icons.
+    for (const key of ['wptIcons', 'wptTypeIcons', 'pointMatchers']) {
+      if (options.markers[key] === undefined) options.markers[key] = _DEFAULT_MARKERS[key];
+    }
     options.marker_options = Object.assign({}, _DEFAULT_MARKER_OPTS, options.marker_options || {});
     options.polyline_options = options.polyline_options || [];
     options.gpx_options = Object.assign({}, _DEFAULT_GPX_OPTS, options.gpx_options || {});
+    if (options.gpx_options.parseElements === undefined) {
+      options.gpx_options.parseElements = _DEFAULT_GPX_OPTS.parseElements;
+    }
 
     Util.setOptions(this, options);
 
@@ -97,7 +105,7 @@ export class GPX extends FeatureGroup {
     this._prepare_markers(options.markers);
     this._init_info();
 
-    if (gpx) {
+    if (gpx !== undefined) {
       this._parse(gpx, options, this.options.async);
     }
   }
@@ -319,12 +327,12 @@ export class GPX extends FeatureGroup {
     };
   }
 
-  _load_xml(url, cb, options, async) {
+  _load_xml(url, cb, options, async, fail, current) {
     if (async === undefined) async = this.options.async;
     if (options === undefined) options = this.options;
 
     // We ignore 'async' param essentially because fetch is always async.
-    fetch(url)
+    Promise.resolve().then(() => fetch(url))
       .then(response => {
         if (!response.ok) {
            throw new Error('Error fetching resource: ' + url + ' (' + response.statusText + ')');
@@ -332,20 +340,27 @@ export class GPX extends FeatureGroup {
         return response.text();
       })
       .then(str => {
+        if (!current()) return;
         const parser = new window.DOMParser();
-        cb(parser.parseFromString(str, "text/xml"), options);
+        cb(parser.parseFromString(str.trimStart(), "text/xml"), options);
       })
       .catch(e => {
-        this.fire('error', { err: e.toString() });
+        fail('Error loading GPX: ' + e);
       });
   }
 
   _xml_parse_error(doc) {
+    if (!doc) return 'Invalid XML: the response could not be parsed as XML';
     if (!doc.documentElement) {
       return 'Invalid XML: the document is empty';
     }
-    var el = doc.getElementsByTagName('parsererror');
-    if (!el.length) return null;
+    var el = doc.getElementsByTagNameNS('*', 'parsererror');
+    if (!el.length) {
+      if (doc.documentElement.localName !== 'gpx') return 'Invalid GPX: expected a <gpx> root element';
+      var version = doc.documentElement.getAttribute('version');
+      if (version && version !== '1.0' && version !== '1.1') return 'Invalid GPX: unsupported version ' + version;
+      return null;
+    }
     var details = (el[0].textContent || '').trim().replace(/\s+/g, ' ');
     if (details.length > 200) details = details.substring(0, 200) + '...';
     return 'Invalid XML: ' + details;
@@ -353,43 +368,85 @@ export class GPX extends FeatureGroup {
 
   _parse(input, options, async) {
     var _this = this;
-    var cb = function(gpx, options, deferEvents) {
-      var fire = function(event, data) {
-        if (deferEvents) {
-          setTimeout(function() { _this.fire(event, data); });
-        } else {
-          _this.fire(event, data);
+    var generation = this._parse_generation = (this._parse_generation || 0) + 1;
+    var current = function() { return generation === _this._parse_generation; };
+    var completed = false;
+    var finish = function(event, data) {
+      if (!current() || completed) return;
+      completed = true;
+      // Listener exceptions belong to the caller, not to the transport/parser.
+      setTimeout(function() { if (current()) _this.fire(event, data); });
+    };
+    var fail = function(message) { finish('error', { err: message }); };
+    var cb = function(gpx, options) {
+      if (!current() || completed) return;
+      try {
+        var parseError = _this._xml_parse_error(gpx);
+        if (parseError) throw new Error(parseError);
+        var layers = _this._parse_gpx_data(gpx, options, current);
+        if (!current()) return;
+        if (!layers) throw new Error('No parseable layers of type(s) ' + JSON.stringify(options.gpx_options.parseElements));
+        _this.addLayer(layers);
+      } catch (e) {
+        if (!current()) return;
+        _this._init_info();
+        // Leaflet removes the layer before firing layerremove. A throwing
+        // listener must not interrupt cleanup of the remaining layers or hide
+        // the original error. Stop if a listener has started a newer parse.
+        var cleanupErrors = [];
+        for (var layer of _this.getLayers()) {
+          if (!current()) return;
+          try { _this.removeLayer(layer); }
+          catch (cleanupError) { cleanupErrors.push(cleanupError.toString()); }
         }
-      };
-      var parseError = _this._xml_parse_error(gpx);
-      if (parseError) {
-        fire('error', { err: parseError });
+        fail('Error parsing GPX: ' + e + (cleanupErrors.length ? '; cleanup: ' + cleanupErrors.join('; ') : ''));
         return;
       }
-      var layers = _this._parse_gpx_data(gpx, options);
-      if (!layers) {
-        fire('error', { err: 'No parseable layers of type(s) ' + JSON.stringify(options.gpx_options.parseElements) });
-        return;
-      }
-      _this.addLayer(layers);
-      fire('loaded', { layers: layers, element: gpx });
-    }
-    if (input.substr(0,1)==='<') { // direct XML has to start with a <
-      var parser = new DOMParser();
-      if (async) {
-        setTimeout(function() {
-          cb(parser.parseFromString(input, "text/xml"), options);
-        });
+      finish('loaded', { layers: layers, element: gpx });
+    };
+    try {
+      if (typeof input !== 'string') throw new Error('Invalid GPX input: expected an XML or URL string');
+      input = input.trim(); // Includes a leading Unicode BOM.
+      if (!input) throw new Error('Invalid GPX input: the string is empty');
+      if (input.charAt(0) === '<') {
+        var parse = function() {
+          if (!current()) return;
+          try {
+            cb(new window.DOMParser().parseFromString(input, 'text/xml'), options);
+          } catch (e) {
+            fail('Error parsing XML: ' + e);
+          }
+        };
+        // Keep synchronous getters, but defer terminal events so listeners can
+        // be attached after construction. Async also defers addpoint/addline.
+        if (async) setTimeout(parse);
+        else parse();
       } else {
-        // Parse synchronously so the parsed layer is usable as soon as the
-        // constructor returns, but fire the events on the next tick: event
-        // handlers can only be attached once the constructor has returned, so
-        // firing now would lose them.
-        cb(parser.parseFromString(input, "text/xml"), options, true);
+        // Single-line paths remain valid (including extensionless endpoints).
+        // Do not send obvious file contents to the network as relative URLs.
+        if (/[\u0000-\u001f\u007f<>]/.test(input) || /^-----BEGIN /.test(input)) {
+          throw new Error('Invalid GPX input: expected XML or a single-line URL');
+        }
+        new URL(input, window.document.baseURI); // Respect <base> and inherited frame URLs.
+        this._load_xml(input, cb, options, async, fail, current);
       }
-    } else {
-      this._load_xml(input, cb, options, async);
+    } catch (e) {
+      fail(e.toString());
     }
+  }
+
+  _point_latlng(el) {
+    var values = ['lat', 'lon'].map(function(attr) {
+      var value = el.getAttribute(attr);
+      if (value === null || !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(value.trim())) {
+        throw new Error('Invalid GPX coordinate: <' + el.localName + '> requires numeric ' + attr);
+      }
+      return Number(value);
+    });
+    if (!Number.isFinite(values[0]) || !Number.isFinite(values[1]) || Math.abs(values[0]) > 90 || Math.abs(values[1]) > 180) {
+      throw new Error('Invalid GPX coordinate: latitude must be -90..90 and longitude -180..180');
+    }
+    return new LatLng(values[0], values[1]);
   }
 
   _first_child(el, localName) {
@@ -425,7 +482,9 @@ export class GPX extends FeatureGroup {
     return null;
   }
 
-  _parse_gpx_data(xml, options) {
+  _parse_gpx_data(xml, options, current) {
+    current = current || function() { return true; };
+    if (!current()) return;
     var i, t, l, el, layers = [];
 
     var name = this._find_info_element(xml, 'name');
@@ -451,10 +510,13 @@ export class GPX extends FeatureGroup {
       // routes are <rtept> tags inside <rte> sections
       var routes = xml.getElementsByTagName('rte');
       for (i = 0; i < routes.length; i++) {
+        if (!current()) return;
         var route = routes[i];
         var base_style = this._extract_styling(route);
         var polyline_options = this._get_polyline_options(options.polyline_options, i);
-        layers = layers.concat(this._parse_segment(routes[i], options, base_style, polyline_options, 'rtept'));
+        var parsed = this._parse_segment(routes[i], options, base_style, polyline_options, 'rtept', current);
+        if (!current()) return;
+        layers = layers.concat(parsed);
       }
     }
 
@@ -462,21 +524,28 @@ export class GPX extends FeatureGroup {
       // tracks are <trkpt> tags in one or more <trkseg> sections in each <trk>
       var tracks = xml.getElementsByTagName('trk');
       for (i = 0; i < tracks.length; i++) {
+        if (!current()) return;
         var track = tracks[i];
         var base_style = this._extract_styling(track);
         var polyline_options = this._get_polyline_options(options.polyline_options, i);
 
         if (options.gpx_options.joinTrackSegments) {
-          layers = layers.concat(this._parse_segment(track, options, base_style, polyline_options, 'trkpt'));
+          var parsed = this._parse_segment(track, options, base_style, polyline_options, 'trkpt', current);
+          if (!current()) return;
+          layers = layers.concat(parsed);
         } else {
           var segments = track.getElementsByTagName('trkseg');
           for (var j = 0; j < segments.length; j++) {
-            layers = layers.concat(this._parse_segment(segments[j], options, base_style, polyline_options, 'trkpt'));
+            if (!current()) return;
+            var parsed = this._parse_segment(segments[j], options, base_style, polyline_options, 'trkpt', current);
+            if (!current()) return;
+            layers = layers.concat(parsed);
           }
         }
       }
     }
 
+    if (!current()) return;
     this._info.hr.avg = Math.round(this._info.hr._total / this._info.hr._points.length);
     this._info.cad.avg = Math.round(this._info.cad._total / this._info.cad._points.length);
     this._info.atemp.avg = Math.round(this._info.atemp._total / this._info.atemp._points.length);
@@ -485,9 +554,8 @@ export class GPX extends FeatureGroup {
     if (parseElements.indexOf('waypoint') > -1) {
       el = xml.getElementsByTagName('wpt');
       for (i = 0; i < el.length; i++) {
-        var ll = new LatLng(
-            el[i].getAttribute('lat'),
-            el[i].getAttribute('lon'));
+        if (!current()) return;
+        var ll = this._point_latlng(el[i]);
 
         var nameEl = el[i].getElementsByTagName('name');
         var name = nameEl.length > 0 ? nameEl[0].textContent : '';
@@ -546,6 +614,7 @@ export class GPX extends FeatureGroup {
         });
         marker.bindPopup("<b>" + name + "</b>" + (desc.length > 0 ? '<br>' + desc : '')).openPopup();
         this.fire('addpoint', { point: marker, point_type: 'waypoint', element: el[i] });
+        if (!current()) return;
         layers.push(marker);
       }
     }
@@ -557,7 +626,9 @@ export class GPX extends FeatureGroup {
     }
   }
 
-  _parse_segment(line, options, base_style, polyline_options, tag) {
+  _parse_segment(line, options, base_style, polyline_options, tag, current) {
+    current = current || function() { return true; };
+    if (!current()) return [];
     var el = line.getElementsByTagName(tag);
     if (!el.length) return [];
 
@@ -567,9 +638,8 @@ export class GPX extends FeatureGroup {
     var last = null;
 
     for (var i = 0; i < el.length; i++) {
-      var _, ll = new LatLng(
-        el[i].getAttribute('lat'),
-        el[i].getAttribute('lon'));
+      if (!current()) return [];
+      var _, ll = this._point_latlng(el[i]);
       ll.meta = { time: null, ele: null, hr: null, cad: null, atemp: null, speed: null };
 
       _ = el[i].getElementsByTagName('time');
@@ -670,6 +740,9 @@ export class GPX extends FeatureGroup {
     // add track
     var l = new Polyline(coords, this._extract_styling(line, base_style, polyline_options));
     this.fire('addline', { line: l, element: line });
+    // A listener may synchronously reload this layer. Do not resume the old
+    // parse: its remaining events and statistics belong to a stale generation.
+    if (!current()) return [];
     layers.push(l);
 
     if (options.markers.startIcon) {
@@ -679,6 +752,7 @@ export class GPX extends FeatureGroup {
         icon: options.markers.startIcon,
       });
       this.fire('addpoint', { point: marker, point_type: 'start', element: el[0], line: line });
+      if (!current()) return [];
       layers.push(marker);
     }
 
@@ -689,17 +763,20 @@ export class GPX extends FeatureGroup {
         icon: options.markers.endIcon,
       });
       this.fire('addpoint', { point: marker, point_type: 'end', element: el[el.length-1], line: line });
+      if (!current()) return [];
       layers.push(marker);
     }
 
     // add named markers
     for (var i = 0; i < markers.length; i++) {
+      if (!current()) return [];
       var marker = new Marker(markers[i].coords, {
         clickable: options.marker_options.clickable,
         title: markers[i].label,
         icon: markers[i].icon
       });
       this.fire('addpoint', { point: marker, point_type: 'label', element: markers[i].element });
+      if (!current()) return [];
       layers.push(marker);
     }
 
