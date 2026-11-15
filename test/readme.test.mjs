@@ -8,17 +8,19 @@ import { JSDOM } from 'jsdom';
 const root = new URL('../', import.meta.url);
 const readme = await readFile(new URL('README.md', root), 'utf8');
 const blocks = [...readme.matchAll(/^```(\w+)\n([\s\S]*?)^```/gm)];
+const hover = await readFile(new URL('examples/hover.md', root), 'utf8');
+const hoverBlocks = [...hover.matchAll(/^```(\w+)\n([\s\S]*?)^```/gm)];
 
-test('every README JavaScript block and inline HTML script has valid syntax', () => {
+test('every README and hover example JavaScript block and inline HTML script has valid syntax', () => {
   let checked = 0;
   function check(code, mode) {
     const result = spawnSync(process.execPath, ['--check', '--input-type=' + mode], {
       input: code, encoding: 'utf8',
     });
-    assert.equal(result.status, 0, `README script ${++checked}: ${result.stderr}`);
+    assert.equal(result.status, 0, `Documentation script ${++checked}: ${result.stderr}`);
     assert.doesNotMatch(code, /fitToBounds|AwesomeMarkers/);
   }
-  for (const [, language, code] of blocks) {
+  for (const [, language, code] of [...blocks, ...hoverBlocks]) {
     if (language === 'javascript' || language === 'js') check(code, 'commonjs');
     if (language !== 'html') continue;
     for (const [, attributes, script] of code.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)) {
@@ -54,7 +56,7 @@ test('local-file example reads XML without requesting it and replaces unsafe way
       fitBounds(bounds) { assert.ok(bounds.isValid()); },
     };
     const code = readme.split('### Loading local files and URLs')[1]
-      .split('## Input validation')[0].match(/```javascript\n([\s\S]*?)```/)[1];
+      .split(/^#{1,6} /m)[0].match(/```javascript\n([\s\S]*?)```/)[1];
     const run = new Function('L', 'document', 'map', 'console', code);
     run(dom.window.L, dom.window.document, map, {
       error: (...args) => failures.push(args),
