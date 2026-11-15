@@ -342,14 +342,21 @@ export class GPX extends FeatureGroup {
 
   _parse(input, options, async) {
     var _this = this;
-    var cb = function(gpx, options) {
+    var cb = function(gpx, options, deferEvents) {
+      var fire = function(event, data) {
+        if (deferEvents) {
+          setTimeout(function() { _this.fire(event, data); });
+        } else {
+          _this.fire(event, data);
+        }
+      };
       var layers = _this._parse_gpx_data(gpx, options);
       if (!layers) {
-        _this.fire('error', { err: 'No parseable layers of type(s) ' + JSON.stringify(options.gpx_options.parseElements) });
+        fire('error', { err: 'No parseable layers of type(s) ' + JSON.stringify(options.gpx_options.parseElements) });
         return;
       }
       _this.addLayer(layers);
-      _this.fire('loaded', { layers: layers, element: gpx });
+      fire('loaded', { layers: layers, element: gpx });
     }
     if (input.substr(0,1)==='<') { // direct XML has to start with a <
       var parser = new DOMParser();
@@ -358,7 +365,11 @@ export class GPX extends FeatureGroup {
           cb(parser.parseFromString(input, "text/xml"), options);
         });
       } else {
-        cb(parser.parseFromString(input, "text/xml"), options);
+        // Parse synchronously so the parsed layer is usable as soon as the
+        // constructor returns, but fire the events on the next tick: event
+        // handlers can only be attached once the constructor has returned, so
+        // firing now would lose them.
+        cb(parser.parseFromString(input, "text/xml"), options, true);
       }
     } else {
       this._load_xml(input, cb, options, async);
