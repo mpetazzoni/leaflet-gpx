@@ -366,10 +366,11 @@ new L.GPX(url, async: true, {
 }).addTo(map);
 ```
 
-Note that for your event listeners to be correctly triggered, you need
-to pass `async: true` to the `L.GPX` constructor; otherwise the parsing
-of the GPX happens synchronously in the constructor before you your
-event listeners get registered!
+Note that `loaded` and `error` are always delivered after the `L.GPX`
+constructor returns, so attaching their listeners right after creating
+the layer always works, with or without `async: true`. The `addpoint`
+and `addline` events, however, fire while the GPX data is being parsed:
+pass `async: true` if you need to catch those.
 
 `addpoint` events are fired for every marker added to the map, in
 particular for the start and end points, all the waypoints, and all the
@@ -386,10 +387,11 @@ contains the following properties:
 One use case for those events is for example to attach additional
 content or behavior to the markers that were generated (popups, etc).
 
-`error` events are fired when no layers of the type(s) specified in
-`options.gpx_options.parseElements` can be parsed out of the given
-file. For instance, `error` would be fired if a file with no waypoints
-was attempted to be loaded with `parseElements` set to `['waypoint']`.
+`error` events are fired when the file cannot be loaded or parsed, and
+when no layers of the type(s) specified in `options.gpx_options.parseElements`
+can be parsed out of it. For instance, `error` would be fired for a file
+that isn't valid XML, or for a file with no waypoints when `parseElements`
+is set to `['waypoint']`.
 Each `error` event contains the following property:
 
 - `err`: a message with details about the error that occurred.
