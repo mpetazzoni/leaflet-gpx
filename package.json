@@ -7,9 +7,13 @@
     "leaflet": "^2.0.0-beta.1"
   },
   "main": "gpx.js",
+  "types": "gpx.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "test:runtime": "node --test test/*.test.mjs"
+    "test": "npm run test:runtime && npm run test:types && npm run test:type-runtime",
+    "test:runtime": "node --test test/*.test.mjs",
+    "test:types": "node test/types/audit.mjs && tsc -p test/types/tsconfig.json && tsc -p test/types/tsconfig.bundler.json",
+    "test:types:package": "node test/types/package.mjs",
+    "test:type-runtime": "node --test test/types/options.test.mjs"
   },
   "repository": {
     "type": "git",
@@ -29,6 +33,8 @@
   },
   "homepage": "https://github.com/mpetazzoni/leaflet-gpx#readme",
   "devDependencies": {
-    "jsdom": "^26.1.0"
+    "jsdom": "^26.1.0",
+    "leaflet": "^2.0.0-beta.4",
+    "typescript": "^7.0.2"
   }
 }

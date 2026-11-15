@@ -86,9 +86,17 @@ export class GPX extends FeatureGroup {
     options = options || {};
     options.max_point_interval = options.max_point_interval || _MAX_POINT_INTERVAL_MS;
     options.markers = Object.assign({}, _DEFAULT_MARKERS, options.markers || {});
+    // Optional TypeScript fields may be explicitly undefined. Treat container
+    // fields that way just like omitted fields, without changing null icons.
+    for (const key of ['wptIcons', 'wptTypeIcons', 'pointMatchers']) {
+      if (options.markers[key] === undefined) options.markers[key] = _DEFAULT_MARKERS[key];
+    }
     options.marker_options = Object.assign({}, _DEFAULT_MARKER_OPTS, options.marker_options || {});
     options.polyline_options = options.polyline_options || [];
     options.gpx_options = Object.assign({}, _DEFAULT_GPX_OPTS, options.gpx_options || {});
+    if (options.gpx_options.parseElements === undefined) {
+      options.gpx_options.parseElements = _DEFAULT_GPX_OPTS.parseElements;
+    }
 
     Util.setOptions(this, options);
 

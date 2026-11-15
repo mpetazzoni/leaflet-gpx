@@ -127,6 +127,70 @@ unsupported versions, loading failures and parsing exceptions produce an
 Omitting the input creates an empty layer. Inline XML still parses synchronously
 unless `async: true`; `loaded` and `error` are always deferred.
 
+### TypeScript
+
+The package includes declarations for its named `GPX` export and all public options, statistics, point metadata, and parser events. They use **Leaflet 2's bundled declarations**, tested with `leaflet@2.0.0-beta.4`; do not install the Leaflet 1 packages `@types/leaflet` or `@types/leaflet-gpx` alongside this version.
+
+```bash
+npm install leaflet@beta leaflet-gpx@beta
+npm install --save-dev typescript
+```
+
+Use an ES module project (`"type": "module"` in `package.json`) with TypeScript's `module`/`moduleResolution` set to `NodeNext`, or use `module: "ESNext"` and `moduleResolution: "Bundler"` for a bundler project. Include the `DOM` library for Leaflet and the XML event payloads. Both configurations are tested with `strict: true` and `skipLibCheck: false`. Leaflet beta.4's own declarations currently fail with the additional `exactOptionalPropertyTypes` flag, so it is not enabled in these checks.
+
+```typescript
+import { DefaultIcon, Map } from 'leaflet';
+import { GPX } from 'leaflet-gpx';
+import type { GPXLoadedEvent, GPXOptions } from 'leaflet-gpx';
+
+const map = new Map('map');
+const options = {
+  async: true, // Needed to catch addline/addpoint when the input is inline XML.
+  markers: {
+    startIcon: null, // Disable the start pin.
+    endIcon: new DefaultIcon({ color: 'crimson' }),
+    wptIcons: {}, // Empty tables and matchers suppress standalone waypoints.
+    wptTypeIcons: {},
+    pointMatchers: [],
+  },
+  gpx_options: { parseElements: ['track'], joinTrackSegments: false },
+  polyline_options: [{ color: 'red', weight: 3 }],
+} satisfies GPXOptions;
+
+const onLoaded = (event: GPXLoadedEvent) => {
+  map.fitBounds(event.target.getBounds()); // target is GPX, not an untyped Evented.
+  const name = event.target.get_name() ?? 'Unnamed track';
+  const start = event.target.get_start_time(); // Date | null
+  console.log(name, start?.toISOString(), event.target.get_distance()); // meters
+};
+
+const track = new GPX('track.gpx', options)
+  .on('loaded', onLoaded)
+  .on('addline', event => {
+    event.line.getLatLngs().forEach(point => {
+      console.log(point.meta.time, point.meta.ele); // Date; meters | null
+      console.log(point.meta.hr); // beats/minute | null
+    });
+  })
+  .on('addpoint', event => {
+    if (event.point_type === 'start' || event.point_type === 'end') {
+      console.log(event.line.localName); // Source XML Element, not a Polyline.
+    }
+  })
+  .once('error', event => console.error(event.err)) // err is a string.
+  .addTo(map);
+
+track.off('loaded', onLoaded); // Standard Leaflet event-map/context overloads also work.
+```
+
+Type-only helpers such as `GPXPolyline`, `GPXMarker`, `GPXLatLng`, and `GPXIconLike` describe objects created by the parser or compatible custom icons; they are **not** additional runtime constructors. Parsed line coordinates carry `meta`; standalone waypoint coordinates do not. Replacing coordinates or dragging markers through Leaflet can discard the parsed metadata. Minimal endpoint custom icons need `createIcon` and `options`. **Standalone waypoints automatically bind popups**, so custom renderers used in waypoint lookup tables or name matchers must also supply `options.popupAnchor`, as described by `GPXWaypointIconLike`. Leaflet `Icon` instances and image URLs provide their own defaults. Custom icons need Leaflet's tooltip-anchor hook if you subsequently bind tooltips.
+
+Explicitly undefined waypoint tables, the matcher array, and `gpx_options.parseElements` retain defaults, just like omitted fields. Empty objects/arrays still intentionally override defaults. The constructor writes normalized properties back into the caller's top-level options object; supplied lookup tables retain their identity and have URL entries replaced with `Icon` instances in place, and matcher rule icons are also changed in place. Frozen options, tables, or matcher rules are unsupported.
+
+The types preserve runtime missing values: `get_name()` returns `string | null`, description/author/copyright return `string | undefined`, start/end times return `Date | null` without track/route points, and elevation chart tuples contain `number | null`. Missing point timestamps use a synthetic **local-time** `1970-01-01T00:00:00` date, not null, and malformed timestamps can be invalid `Date` objects. Missing elevation carries forward or stays null; `get_elevation_min()` can also be null (the imperial minimum converts null to zero). Averages with no sensor samples, and speed/pace calculations with zero denominators, can be `NaN` or `Infinity`; check `Number.isFinite()` before displaying them. Temperature remains Celsius even in `_imp` methods. `reload()` returns `void`, not a chainable layer or a promise.
+
+For maintainers, `npm run test:types` audits all runtime public methods against the declaration and exact-signature fixtures, then compiles positive and `@ts-expect-error` negative fixtures under both module-resolution modes. `npm run test:types:package` packs the package, installs it and Leaflet/TypeScript in a temporary external consumer, and compiles those same fixtures without local path aliases. `npm run test:type-runtime` checks undefined-option normalization, preservation of supplied settings and in-place mutations, and custom waypoint popups using actual Leaflet with jsdom; `npm test` runs both compile and runtime checks.
+
 ## Functions
 
 If you want to display additional information about the GPX track, you can do
@@ -237,8 +301,15 @@ new L.GPX(url, {
 * `pointMatchers` is an array of custom point matchers and their
   respective icon (see below);
 
-You can also override any of those to `null` to disable the
-corresponding marker altogether.
+Set `startIcon` or `endIcon` to `null` to disable that pin. A `null`
+entry inside `wptIcons` or `wptTypeIcons` is not selected, but later
+matching/fallback rules may still produce a marker. Use empty lookup tables
+(`wptIcons: {}`, `wptTypeIcons: {}`) and `pointMatchers: []` to suppress
+all standalone waypoints. Do not set the lookup tables or matcher array
+themselves to `null`: the current setup code expects objects/arrays.
+Matcher rules require a non-null icon because a matching track/route point
+still creates a marker. When the matcher array is nonempty, unmatched
+waypoints do not use the empty-key fallback icon.
 
 Here is how you would override the URL of the provided icons for start
 and end markers, but none of the other types of markers:
