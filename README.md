@@ -28,6 +28,19 @@ I've put together a complete example as a
 attached LICENSE file and/or to the copyright header in gpx.js for more
 information.
 
+## Compatibility
+
+`leaflet-gpx` 3.x is for Leaflet 2.x and is published as an ES module
+only, like Leaflet 2 itself. It is currently in beta, tracking Leaflet's
+own 2.0 betas:
+
+```bash
+npm install leaflet@beta leaflet-gpx@beta
+```
+
+If you are still on Leaflet 1.x, use the 2.x line (`leaflet-gpx@2`),
+which is a classic UMD script exposing `L.GPX`.
+
 ## Usage
 
 Usage is very simple. As Leaflet 2.0 is an ESM-only library, you should use `leaflet-gpx` as an ES module.
@@ -50,7 +63,7 @@ Usage is very simple. As Leaflet 2.0 is an ESM-only library, you should use `lea
       {
         "imports": {
           "leaflet": "https://unpkg.com/leaflet@2.0.0-beta.4/dist/leaflet.js",
-          "leaflet-gpx": "./gpx.js"
+          "leaflet-gpx": "https://unpkg.com/leaflet-gpx@beta/gpx.js"
         }
       }
     </script>
@@ -82,7 +95,7 @@ Usage is very simple. As Leaflet 2.0 is an ESM-only library, you should use `lea
 ### Using with a bundler (Vite, Webpack, etc.)
 
 ```bash
-npm install leaflet leaflet-gpx
+npm install leaflet@beta leaflet-gpx@beta
 ```
 
 ```javascript
