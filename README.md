@@ -2,10 +2,10 @@
 
 [![CDNJS](https://img.shields.io/cdnjs/v/leaflet-gpx.svg)](https://cdnjs.com/libraries/leaflet-gpx)
 
-[Leaflet](http://www.leafletjs.com) is a Javascript library for displaying
+[Leaflet](https://leafletjs.com) is a JavaScript library for displaying
 interactive maps. This plugin, based on the work of [Pavel
-Shramov](http://github.com/shramov) and his
-[leaflet-plugins](http://github.com/shramov/leaflet-plugins), allows for
+Shramov](https://github.com/shramov) and his
+[leaflet-plugins](https://github.com/shramov/leaflet-plugins), allows for
 displaying and analyzing GPX tracks and their waypoints so they can be
 displayed on a Leaflet map as a new layer.
 
@@ -20,7 +20,18 @@ interval by setting `max_point_interval`, in milliseconds, in the options
 passed to the `GPX` constructor.
 
 I've put together a complete example as a
-[demo](http://mpetazzoni.github.io/leaflet-gpx/).
+[demo](https://mpetazzoni.github.io/leaflet-gpx/). It starts with the sample
+track: choose a local GPX file, load a GPX URL, or reset to the sample.
+Local files are read in your browser, not uploaded. The page still requests
+map tiles and scripts from external services; tile requests reveal the
+viewed region, and this is not an offline map.
+URL loading requires HTTPS on the HTTPS demo and a server allowing browser
+cross-origin requests (CORS). Hover over a track to inspect its nearest
+recorded sample; fields without usable telemetry are omitted, not invented.
+
+Jump to [Usage](#usage), [local files and URLs](#loading-local-files-and-urls),
+[TypeScript](#typescript), [marker icons](#about-marker-icons),
+[events](#events), or [point hover](#hovering-over-track-points).
 
 ## License
 
@@ -30,16 +41,25 @@ information.
 
 ## Compatibility
 
-`leaflet-gpx` 3.x is for Leaflet 2.x and is published as an ES module
-only, like Leaflet 2 itself. It is currently in beta, tracking Leaflet's
-own 2.0 betas:
+**This `main` branch targets Leaflet 2.x**, using the named ES module
+export `GPX` (no `L.GPX` global). It is unreleased development code, tested
+with `leaflet@2.0.0-beta.4`. As of November 2026, npm's `latest` is still
+`leaflet-gpx@2.2.0` for Leaflet 1, and there is **no `beta` dist-tag**.
+Install the GitHub branch to try the Leaflet 2 version today:
 
 ```bash
-npm install leaflet@beta leaflet-gpx@beta
+npm install leaflet@2.0.0-beta.4 'github:mpetazzoni/leaflet-gpx#main'
 ```
 
-If you are still on Leaflet 1.x, use the 2.x line (`leaflet-gpx@2`),
-which is a classic UMD script exposing `L.GPX`.
+GitHub branches and branch CDN URLs can change; pin a reviewed commit SHA
+instead of `main` for reproducible builds. Once a 3.x beta is published,
+`npm install leaflet@beta leaflet-gpx@beta` will be the beta installation
+command; it does not work for this plugin yet.
+
+If you are still on Leaflet 1.x, use the published 2.x line
+(`npm install leaflet@1.9.4 leaflet-gpx@2.2.0`), a classic UMD script
+exposing `L.GPX`. For newer, **not yet published** maintenance fixes, see
+the [2.x branch README](https://github.com/mpetazzoni/leaflet-gpx/blob/leaflet-gpx-2.x/README.md).
 
 ## Usage
 
@@ -63,7 +83,7 @@ Usage is very simple. As Leaflet 2.0 is an ESM-only library, you should use `lea
       {
         "imports": {
           "leaflet": "https://unpkg.com/leaflet@2.0.0-beta.4/dist/leaflet.js",
-          "leaflet-gpx": "https://unpkg.com/leaflet-gpx@beta/gpx.js"
+          "leaflet-gpx": "https://cdn.jsdelivr.net/gh/mpetazzoni/leaflet-gpx@main/gpx.js"
         }
       }
     </script>
@@ -73,8 +93,8 @@ Usage is very simple. As Leaflet 2.0 is an ESM-only library, you should use `lea
       import { GPX } from 'leaflet-gpx';
 
       const map = new Map('map');
-      new TileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: 'Map data &copy; <a href="http://www.osm.org">OpenStreetMap</a>'
+      new TileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
       }).addTo(map);
 
       // URL to your GPX file or the GPX itself as a XML string.
@@ -86,7 +106,7 @@ Usage is very simple. As Leaflet 2.0 is an ESM-only library, you should use `lea
 
       new GPX(url, options).on('loaded', (e) => {
         map.fitBounds(e.target.getBounds());
-      }).addTo(map);
+      }).on('error', e => console.error(e.err)).addTo(map);
      </script>
   </body>
 </html>
@@ -95,7 +115,7 @@ Usage is very simple. As Leaflet 2.0 is an ESM-only library, you should use `lea
 ### Using with a bundler (Vite, Webpack, etc.)
 
 ```bash
-npm install leaflet@beta leaflet-gpx@beta
+npm install leaflet@2.0.0-beta.4 'github:mpetazzoni/leaflet-gpx#main'
 ```
 
 ```javascript
@@ -103,9 +123,79 @@ import { Map, TileLayer } from 'leaflet';
 import { GPX } from 'leaflet-gpx';
 
 const map = new Map('map');
-// ...
-new GPX(url, options).addTo(map);
+new TileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+const url = 'https://mpetazzoni.github.io/leaflet-gpx/demo.gpx';
+new GPX(url, { async: true })
+  .on('loaded', e => map.fitBounds(e.target.getBounds()))
+  .on('error', e => console.error(e.err))
+  .addTo(map);
 ```
+
+The bundler must also include `leaflet/dist/leaflet.css` (for example,
+`import 'leaflet/dist/leaflet.css'`) and the page needs a `#map` element
+with a nonzero height. Later option snippets reuse the imported `GPX`,
+`map`, and `url`; import `Icon` or `DefaultIcon` where shown.
+
+### Loading local files and URLs
+
+The constructor accepts GPX XML text or a URL string, **not a `File`**.
+For a local file, read its contents with `File.text()` and pass the XML:
+this does not upload the file. Use a file input, not its `value` (which
+is only a browser placeholder path). Add
+`<input id="gpx-file" type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml">`
+to the page, then use the existing map and imports from above:
+
+```javascript
+function showGPX(input) {
+  return new GPX(input, { async: true })
+    .on('addpoint', e => {
+      if (e.point_type !== 'waypoint') return;
+      const content = document.createElement('div');
+      content.textContent = Array.from(e.element.children)
+        .filter(child => ['name', 'desc'].includes(child.localName))
+        .map(child => child.textContent).join('\n');
+      e.point.setPopupContent(content); // Replace the built-in HTML popup.
+    })
+    .on('loaded', e => map.fitBounds(e.target.getBounds()))
+    .on('error', e => console.error('GPX load/parse failed:', e.err))
+    .addTo(map);
+}
+
+document.getElementById('gpx-file').addEventListener('change', async event => {
+  const file = event.target.files[0];
+  if (!file) return; // The picker may be cancelled.
+  try {
+    const xml = await file.text();
+    if (!xml.trimStart().startsWith('<')) throw new Error('Expected GPX XML');
+    showGPX(xml);
+  } catch (error) {
+    console.error('Could not read GPX file:', error);
+  }
+});
+
+// URL loads are asynchronous and report HTTP, CORS, and parsing failures.
+showGPX('https://mpetazzoni.github.io/leaflet-gpx/demo.gpx');
+```
+
+These minimal snippets add layers; remove a previous layer with
+`map.removeLayer(track)` when implementing replacement/reset controls.
+The demo replaces the displayed track and can reset to its bundled sample.
+The file input's `accept` is only a picker hint, not validation. The XML
+check prevents non-XML local contents from being mistaken for a URL.
+The `addpoint` hook replaces standalone waypoint popups before they reach
+the map: the plugin's built-in popup concatenates name/description as HTML,
+so do not use that default for untrusted files or URLs. Render GPX text
+with `textContent`, not `innerHTML`. This is not a full XML/security sandbox.
+External URL hosts must allow your page's origin with CORS headers; a link
+working in a browser tab does not guarantee `fetch` access. Use HTTPS URLs
+on HTTPS pages to avoid mixed-content blocking. Serve your own page over
+HTTP(S), not `file://`; no proxy or upload service is needed for local files.
+
+For maintainers, `npm test` also syntax-checks every JavaScript example
+(including inline HTML scripts), checks the TypeScript example against
+its compiled fixture, and exercises the local-file popup/privacy behavior.
 
 ## Input validation
 
@@ -132,7 +222,7 @@ unless `async: true`; `loaded` and `error` are always deferred.
 The package includes declarations for its named `GPX` export and all public options, statistics, point metadata, and parser events. They use **Leaflet 2's bundled declarations**, tested with `leaflet@2.0.0-beta.4`; do not install the Leaflet 1 packages `@types/leaflet` or `@types/leaflet-gpx` alongside this version.
 
 ```bash
-npm install leaflet@beta leaflet-gpx@beta
+npm install leaflet@2.0.0-beta.4 'github:mpetazzoni/leaflet-gpx#main'
 npm install --save-dev typescript
 ```
 
@@ -180,7 +270,8 @@ const track = new GPX('track.gpx', options)
   .once('error', event => console.error(event.err)) // err is a string.
   .addTo(map);
 
-track.off('loaded', onLoaded); // Standard Leaflet event-map/context overloads also work.
+// During teardown, after loading: standard listener/context overloads work.
+// track.off('loaded', onLoaded);
 ```
 
 Type-only helpers such as `GPXPolyline`, `GPXMarker`, `GPXLatLng`, and `GPXIconLike` describe objects created by the parser or compatible custom icons; they are **not** additional runtime constructors. Parsed line coordinates carry `meta`; standalone waypoint coordinates do not. Replacing coordinates or dragging markers through Leaflet can discard the parsed metadata. Minimal endpoint custom icons need `createIcon` and `options`. **Standalone waypoints automatically bind popups**, so custom renderers used in waypoint lookup tables or name matchers must also supply `options.popupAnchor`, as described by `GPXWaypointIconLike`. Leaflet `Icon` instances and image URLs provide their own defaults. Custom icons need Leaflet's tooltip-anchor hook if you subsequently bind tooltips.
@@ -264,7 +355,7 @@ You can make `leaflet-gpx` reload the source GPX file by calling the
 can do:
 
 ```javascript
-var gpx = new L.GPX(url);
+const gpx = new GPX(url).on('error', e => console.error(e.err));
 setInterval(function() {
   gpx.reload();
 }, 5000);
@@ -274,20 +365,22 @@ setInterval(function() {
 
 ### Configuring markers
 
-By default, `leaflet-gpx` uses Leaflet's default icon image for all
+By default, `leaflet-gpx` uses Leaflet's `DefaultIcon` for all
 markers. You can override this behavior by providing a Leaflet `Icon`
 object, or the path or URL to an image to use as the marker, for any of
 the markers supported by this plugin as part of the `markers` parameter:
 
 ```javascript
-new L.GPX(url, {
+import { DefaultIcon } from 'leaflet';
+
+new GPX(url, {
   async: true,
   markers: {
-    startIcon: ...,
-    endIcon: ...
-    wptIcons: { ... },
-    wptTypeIcons: { ... },
-    pointMatchers: [ ... ],
+    startIcon: new DefaultIcon({ color: 'green' }),
+    endIcon: new DefaultIcon({ color: 'red' }),
+    wptIcons: { '': new DefaultIcon() },
+    wptTypeIcons: {},
+    pointMatchers: [],
   }
 }).on('loaded', function(e) {
   map.fitBounds(e.target.getBounds());
@@ -308,14 +401,15 @@ matching/fallback rules may still produce a marker. Use empty lookup tables
 all standalone waypoints. Do not set the lookup tables or matcher array
 themselves to `null`: the current setup code expects objects/arrays.
 Matcher rules require a non-null icon because a matching track/route point
-still creates a marker. When the matcher array is nonempty, unmatched
-waypoints do not use the empty-key fallback icon.
+still creates a marker. When the matcher array is nonempty, the empty-key
+fallback is not consulted; see the icon-retention caveat under
+[About waypoints](#about-waypoints) before relying on matchers as a filter.
 
 Here is how you would override the URL of the provided icons for start
 and end markers, but none of the other types of markers:
 
 ```javascript
-new L.GPX(url, {
+new GPX(url, {
   async: true,
   markers: {
     startIcon: 'images/pin-icon-start.png',
@@ -326,22 +420,19 @@ new L.GPX(url, {
 }).addTo(map);
 ```
 
-It's usually preferrable and more flexible to provide a Leaflet `Icon`
-instance directly, for example from
-[leaflet-awesome-markers](https://github.com/lennardv2/Leaflet.awesome-markers). See
-<https://leafletjs.com/examples/custom-icons/> for more information.
+It is usually preferable and more flexible to provide a Leaflet `Icon`
+instance directly. Leaflet 2's `DefaultIcon` also supports a `color` option.
+Leaflet 1 plugins such as AwesomeMarkers are not assumed compatible with
+Leaflet 2; the examples here use Leaflet's own icons instead.
 
 ```javascript
-new L.GPX(url, {
+import { DefaultIcon } from 'leaflet';
+
+new GPX(url, {
   async: true,
   markers: {
     wptIcons: {
-      'Coffee shop': new L.AwesomeMarkers.icon({
-        icon: 'coffee',
-        prefix: 'fa',
-        markerColor: 'blue',
-        iconColor: 'white'
-      })
+      'Coffee shop': new DefaultIcon({ color: 'blue' })
     }
   }
 }).on('loaded', function (e) {
@@ -351,13 +442,15 @@ new L.GPX(url, {
 
 ### Marker options
 
-You can fine tune marker options using any of the parameters expected by
-[Leaflet's base L.Icon class](https://leafletjs.com/reference.html#icon)
-using the `marker_options` parameters:
+`marker_options` configures Leaflet `Icon` instances created from image
+URL strings, not existing icon objects or general `Marker` options.
+The default URL-icon size is `[33, 45]` and anchor is `[16, 45]` pixels.
+Provide an image URL for these options to take effect:
 
 ```javascript
-new L.GPX(url, {
+new GPX(url, {
   async: true,
+  markers: { startIcon: 'images/pin-icon-start.png' },
   marker_options: {
     iconSize: [38, 95],
     iconAnchor: [22, 94],
@@ -366,6 +459,11 @@ new L.GPX(url, {
   map.fitBounds(e.target.getBounds());
 }).addTo(map);
 ```
+
+The legacy `marker_options.clickable` flag defaults to `false` and is
+forwarded to generated markers. Leaflet 2 uses `interactive` instead and
+ignores `clickable`; do not rely on this flag to disable pointer events.
+General marker options are not forwarded through `marker_options`.
 
 ### Sensible defaults
 
@@ -383,21 +481,27 @@ can be controlled via the value `waypoint` in `gpx_options`, e.g.
 The icon used in the marker representing each track waypoint is
 determined based on the waypoint's properties, in this order:
 
-* If the waypoint has a `sym` attribute, the `markers.wptIcons[sym]`
+* If the waypoint has a `<sym>` element with a matching non-null entry, the `markers.wptIcons[sym]`
   icon is used;
-* If the waypoint has a `type` attribute, the `markers.wptTypeIcons[type]`
+* If the waypoint has a `<type>` element with a matching non-null entry, the `markers.wptTypeIcons[type]`
   icon is used;
 * Point matchers are evaluated in order, if one matches the waypoint's
-  `name` attribute, its icon is used (see _Named markers_ below);
-* If none of the above rules match, the default `''` (empty string) icon
-  entry in `wptIcons` is used.
+  `<name>` element, its icon is used (see [Named points](#named-points));
+* Only when no point matchers are configured, the default `''` (empty string)
+  icon entry in `wptIcons` is used as a fallback.
+
+**Current limitation:** the parser can retain an earlier waypoint's selected
+icon for a later unmatched waypoint. Do not rely on matcher rules to exclude
+individual waypoints; filter those waypoints out of the XML before parsing.
 
 ```javascript
-new L.GPX(url, {
+import { DefaultIcon } from 'leaflet';
+
+new GPX(url, {
   async: true,
   markers: {
     wptIcons: {
-      '': new L.Icon.Default,
+      '': new DefaultIcon(),
       'Geocache Found': 'img/gpx/geocache.png',
       'Park': 'img/gpx/tree.png'
     },
@@ -415,7 +519,7 @@ markers for those points by providing a `pointMatchers` array in the
 `markers` constructor parameter.
 
 Each element in this array must define a `regex` to match the point's
-name and an `icon` definition (a `L.Icon` or subclass object, or the URL
+name and an `icon` definition (an `Icon` or subclass object, or the URL
 to an icon image).
 
 Each named point in the GPX track is evaluated against those rules and
@@ -424,53 +528,48 @@ matching rule. This also applies to named waypoints, but keep in mind
 that waypoint icons rules take precedence over point matchers.
 
 ```javascript
-new L.GPX(url, {
+import { DefaultIcon } from 'leaflet';
+
+new GPX(url, {
   async: true,
   markers: {
     pointMatchers: [
       {
         regex: /Coffee/,
-        icon: new L.AwesomeMarkers.icon({
-          icon: 'coffee',
-          markerColor: 'blue',
-          iconColor: 'white'
-        }),
+        icon: new DefaultIcon({ color: 'blue' }),
       },
       {
         regex: /Home/,
-        icon: new L.AwesomeMarkers.icon({
-          icon: 'home',
-          markerColor: 'green',
-          iconColor: 'white'
-        }),
+        icon: new DefaultIcon({ color: 'green' }),
       }
     ]
   }
 }).on('loaded', function(e) {
-  map.fitToBounds(e.target.getBounds());
+  map.fitBounds(e.target.getBounds());
 }).addTo(map);
 ```
 
 ## Events
 
-Events are fired on the `L.GPX` object as the GPX data is being parsed
+Events are fired on the `GPX` object as the GPX data is being parsed
 and the map layers generated. You can listen for those events by
-attaching the corresponding event listener on the `L.GPX` object:
+attaching the corresponding event listener on the `GPX` object:
 
 ```javascript
-new L.GPX(url, async: true, {
+new GPX(url, {
+  async: true,
   // options
 }).on('addpoint', function(e) {
   console.log('Added ' + e.point_type + ' point: ' + e.point);
 }).on('loaded', function(e) {
   var gpx = e.target;
-  map.fitToBounds(gpx.getBounds());
+  map.fitBounds(gpx.getBounds());
 }).on('error', function(e) {
   console.log('Error loading file: ' + e.err);
 }).addTo(map);
 ```
 
-Note that `loaded` and `error` are always delivered after the `L.GPX`
+Note that `loaded` and `error` are always delivered after the `GPX`
 constructor returns, so attaching their listeners right after creating
 the layer always works, with or without `async: true`. The `addpoint`
 and `addline` events, however, fire while the GPX data is being parsed:
@@ -635,7 +734,7 @@ There is one hover listener and one exit listener per polyline, with at most one
 ## Line styling
 
 `leaflet-gpx` understands the [GPX
-Style](http://www.topografix.com/GPX/gpx_style/0/2) extension, and will
+Style](https://www.topografix.com/GPX/gpx_style/0/2) extension, and will
 extract styling information defined on routes and track segments to use
 for drawing the corresponding polyline.
 
@@ -663,12 +762,14 @@ for drawing the corresponding polyline.
 > supported.
 
 You can override the style of the lines by passing a `polyline_options`
-array into the `options` argument of the `L.GPX` constructor, each
-element of the array defines the style for the corresponding route
-and/or track in the file (in the same order).
+array into the `options` argument of the `GPX` constructor. Routes and
+tracks are indexed independently from zero, in document order within
+each category: entry zero applies to both the first route and first track.
+All segments of a track share its entry; missing entries retain XML/default
+styling.
 
 ```javascript
-new L.GPX(url, {
+new GPX(url, {
   polyline_options: [{
     color: 'green',
     opacity: 0.75,
@@ -681,7 +782,7 @@ new L.GPX(url, {
   }]
 }).on('loaded', function(e) {
   var gpx = e.target;
-  map.fitToBounds(gpx.getBounds());
+  map.fitBounds(gpx.getBounds());
 }).addTo(map);
 ```
 
@@ -691,7 +792,7 @@ object rather than an array (this is also how `leaflet-gpx` worked
 before the introduction of the array):
 
 ```javascript
-new L.GPX(url, {
+new GPX(url, {
   polyline_options: {
     color: 'green',
     opacity: 0.75,
@@ -700,7 +801,7 @@ new L.GPX(url, {
   }
 }).on('loaded', function(e) {
   var gpx = e.target;
-  map.fitToBounds(gpx.getBounds());
+  map.fitBounds(gpx.getBounds());
 }).addTo(map);
 ```
 
@@ -732,7 +833,7 @@ You can disable this behavior by setting the `joinTrackSegments` flag to
 `false` in the `gpx_options`:
 
 ```javascript
-new L.GPX(url, {
+new GPX(url, {
   gpx_options: {
     joinTrackSegments: false
   }

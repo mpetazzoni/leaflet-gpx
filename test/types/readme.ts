@@ -39,4 +39,5 @@ const track = new GPX('track.gpx', options)
   .once('error', event => console.error(event.err)) // err is a string.
   .addTo(map);
 
-track.off('loaded', onLoaded); // Standard Leaflet event-map/context overloads also work.
+// During teardown, after loading: standard listener/context overloads work.
+// track.off('loaded', onLoaded);
