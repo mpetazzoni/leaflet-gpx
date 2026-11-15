@@ -4,7 +4,8 @@
   "description": "A Leaflet plugin for showing a GPX track on a map",
   "main": "gpx.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run test:runtime",
+    "test:runtime": "node --test test/*.test.mjs"
   },
   "repository": {
     "type": "git",
@@ -22,5 +23,9 @@
   "bugs": {
     "url": "https://github.com/mpetazzoni/leaflet-gpx/issues"
   },
-  "homepage": "https://github.com/mpetazzoni/leaflet-gpx#readme"
+  "homepage": "https://github.com/mpetazzoni/leaflet-gpx#readme",
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "leaflet": "^1.9.4"
+  }
 }

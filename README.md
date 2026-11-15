@@ -92,6 +92,26 @@ await import('gpx.js').then((module) => {
 });
 ```
 
+## Input validation
+
+Pass GPX XML or a URL as a primitive string. Leading/trailing whitespace and a
+leading BOM are ignored. A string beginning with `<` is parsed as XML; other
+nonempty single-line strings are treated as URLs, including relative paths,
+extensionless endpoints, and URLs with queries. Control characters, XML angle
+brackets in URLs, and PGP armor headers are rejected before any request.
+Encode such characters when they are part of an actual URL. A single-line
+filename or text string is inherently ambiguous, so it remains a URL for
+backward compatibility; fetched contents are validated regardless of extension.
+
+The document must have a `<gpx>` root. GPX 1.0 and 1.1 are accepted, as are
+files omitting version or namespace; this is not full schema validation.
+Parsed track, route and waypoint coordinates must be finite numbers within
+latitude -90..90 and longitude -180..180. Invalid input, XML, coordinates,
+unsupported versions, loading failures and parsing exceptions produce an
+`error` event with an `err` message rather than an uncaught exception.
+Omitting the input creates an empty layer. Inline XML still parses synchronously
+unless `async: true`; `loaded` and `error` are always deferred.
+
 ## Functions
 
 If you want to display additional information about the GPX track, you can do
