@@ -340,6 +340,17 @@ export class GPX extends FeatureGroup {
       });
   }
 
+  _xml_parse_error(doc) {
+    if (!doc.documentElement) {
+      return 'Invalid XML: the document is empty';
+    }
+    var el = doc.getElementsByTagName('parsererror');
+    if (!el.length) return null;
+    var details = (el[0].textContent || '').trim().replace(/\s+/g, ' ');
+    if (details.length > 200) details = details.substring(0, 200) + '...';
+    return 'Invalid XML: ' + details;
+  }
+
   _parse(input, options, async) {
     var _this = this;
     var cb = function(gpx, options, deferEvents) {
@@ -350,6 +361,11 @@ export class GPX extends FeatureGroup {
           _this.fire(event, data);
         }
       };
+      var parseError = _this._xml_parse_error(gpx);
+      if (parseError) {
+        fire('error', { err: parseError });
+        return;
+      }
       var layers = _this._parse_gpx_data(gpx, options);
       if (!layers) {
         fire('error', { err: 'No parseable layers of type(s) ' + JSON.stringify(options.gpx_options.parseElements) });
