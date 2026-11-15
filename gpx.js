@@ -365,24 +365,58 @@ export class GPX extends FeatureGroup {
     }
   }
 
+  _first_child(el, localName) {
+    if (!el) return null;
+    for (var i = 0; i < el.children.length; i++) {
+      if (el.children[i].localName === localName) return el.children[i];
+    }
+    return null;
+  }
+
+  /*
+   * Find the element carrying a given piece of GPX metadata, looking in the
+   * places the GPX spec allows it, in order of preference: the metadata block
+   * (GPX 1.1), directly under <gpx> (GPX 1.0), then the first track or route
+   * (some files only carry their name there).
+   *
+   * We deliberately look at direct children only: <name> also appears on every
+   * waypoint, track point and route point, and searching the whole document
+   * made get_name() return the name of the last waypoint instead of the file's.
+   */
+  _find_info_element(xml, localName) {
+    var root = xml.documentElement;
+    if (!root) return null;
+    var candidates = [
+      this._first_child(this._first_child(root, 'metadata'), localName),
+      this._first_child(root, localName),
+      this._first_child(xml.getElementsByTagName('trk')[0], localName),
+      this._first_child(xml.getElementsByTagName('rte')[0], localName),
+    ];
+    for (var i = 0; i < candidates.length; i++) {
+      if (candidates[i]) return candidates[i];
+    }
+    return null;
+  }
+
   _parse_gpx_data(xml, options) {
     var i, t, l, el, layers = [];
 
-    var name = xml.getElementsByTagName('name');
-    if (name.length > 0) {
-      this._info.name = name[0].textContent;
+    var name = this._find_info_element(xml, 'name');
+    if (name) {
+      this._info.name = name.textContent.trim();
     }
-    var desc = xml.getElementsByTagName('desc');
-    if (desc.length > 0) {
-      this._info.desc = desc[0].textContent;
+    var desc = this._find_info_element(xml, 'desc');
+    if (desc) {
+      this._info.desc = desc.textContent.trim();
     }
-    var author = xml.getElementsByTagName('author');
-    if (author.length > 0) {
-      this._info.author = author[0].textContent;
+    var author = this._find_info_element(xml, 'author');
+    if (author) {
+      var authorName = this._first_child(author, 'name');
+      this._info.author = (authorName || author).textContent.trim();
     }
-    var copyright = xml.getElementsByTagName('copyright');
-    if (copyright.length > 0) {
-      this._info.copyright = copyright[0].textContent;
+    var copyright = this._find_info_element(xml, 'copyright');
+    if (copyright) {
+      this._info.copyright = copyright.textContent.trim();
     }
 
     var parseElements = options.gpx_options.parseElements;
