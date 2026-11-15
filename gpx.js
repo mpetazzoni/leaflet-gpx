@@ -83,6 +83,7 @@ const _DEFAULT_GPX_OPTS = {
 export class GPX extends FeatureGroup {
   constructor(gpx, options) {
     super();
+    options = options || {};
     options.max_point_interval = options.max_point_interval || _MAX_POINT_INTERVAL_MS;
     options.markers = Object.assign({}, _DEFAULT_MARKERS, options.markers || {});
     options.marker_options = Object.assign({}, _DEFAULT_MARKER_OPTS, options.marker_options || {});
