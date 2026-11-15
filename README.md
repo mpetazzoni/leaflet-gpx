@@ -500,6 +500,138 @@ Each `error` event contains the following property:
 
 - `err`: a message with details about the error that occurred.
 
+## Hovering over track points
+
+`addline` fires for each generated route/track polyline, with `line` (the Leaflet `Polyline`) and `element` (its source XML element). `line.getLatLngs()` already gives you the parsed points, including their `point.meta` objects: Leaflet preserves these `LatLng` instances. No custom copy of `coords`, invisible marker for every sample, or event for every track point is needed. `addpoint` is only about generated markers, not every recorded sample. Use `async: true` to attach `addline` before parsing starts, including with inline XML.
+
+The example below is complete JavaScript for a page with a `#map` element and Leaflet's stylesheet (see the import map above). It selects the **nearest recorded sample in projected screen pixels**, not the closest latitude/longitude or an interpolated point on a segment. `closestLayerPoint()` returns a position on the rendered line, not a recorded sample with metadata. At crossings or with sparse recordings, the nearest sample can belong to a different part of the route than you expect.
+
+```javascript
+import { Map, TileLayer, Tooltip } from 'leaflet';
+import { GPX } from 'leaflet-gpx';
+
+function addPointHover(map, line) {
+  const points = line.getLatLngs(); // GPX lines have a flat array of LatLngs.
+  const content = document.createElement('div');
+  const tooltip = new Tooltip({ direction: 'center', offset: [0, 0], opacity: 1 });
+  let pixels = [], cachedZoom, pending, frame, previous;
+
+  function hide() {
+    cancelAnimationFrame(frame);
+    frame = pending = previous = undefined;
+    tooltip.remove();
+  }
+
+  function render() {
+    frame = undefined;
+    const event = pending;
+    pending = undefined;
+    const zoom = map.getZoom();
+    if (zoom !== cachedZoom) {
+      // World pixels: panning translates every point equally, so only zoom
+      // invalidates this cache. Keep metadata on the original points.
+      pixels = points.map(point => map.project(point, zoom));
+      cachedZoom = zoom;
+    }
+    const pointer = map.project(event.latlng, zoom);
+    let nearest, distance = Infinity;
+    for (let i = 0; i < pixels.length; i++) {
+      const dx = pixels[i].x - pointer.x, dy = pixels[i].y - pointer.y;
+      const squared = dx * dx + dy * dy;
+      if (squared < distance) {
+        distance = squared;
+        nearest = points[i];
+      }
+    }
+    if (!nearest) return hide();
+
+    if (nearest !== previous) {
+      content.replaceChildren();
+      const meta = nearest.meta || {};
+      function row(label, value) {
+        const div = document.createElement('div');
+        div.textContent = label + ': ' + value; // Never render GPX data as HTML.
+        content.appendChild(div);
+      }
+      // Missing <time> currently gets this synthetic LOCAL epoch timestamp.
+      const time = meta.time instanceof Date ? meta.time.getTime() : NaN;
+      if (Number.isFinite(time) && time !== new Date('1970-01-01T00:00:00').getTime()) {
+        row('Time', meta.time.toISOString());
+      }
+      if (Number.isFinite(meta.ele)) row('Elevation', meta.ele.toFixed(1) + ' m');
+      if (Number.isFinite(meta.speed) && meta.speed >= 0 && Number.isFinite(meta.speed * 3.6)) {
+        row('Speed', (meta.speed * 3.6).toFixed(1) + ' km/h');
+      }
+      if (Number.isFinite(meta.hr) && meta.hr >= 0) row('Heart rate', meta.hr + ' bpm');
+      if (Number.isFinite(meta.cad) && meta.cad >= 0) row('Cadence', meta.cad + ' rpm');
+      if (Number.isFinite(meta.atemp)) row('Ambient temperature', meta.atemp + ' °C');
+      if (!content.childNodes.length) row('Point', 'No recorded data');
+      tooltip.setContent(content);
+      previous = nearest;
+    }
+    tooltip.setLatLng(event.latlng);
+    if (!map.hasLayer(tooltip)) tooltip.addTo(map);
+
+    // Leaflet doesn't clamp tooltips. Measure the rendered box, constrain its
+    // size, then place it inside BOTH the map and the visible browser viewport.
+    const container = map.getContainer(), bounds = container.getBoundingClientRect();
+    const left = Math.max(bounds.left, 0) + 8;
+    const right = Math.min(bounds.right, document.documentElement.clientWidth) - 8;
+    const top = Math.max(bounds.top, 0) + 8;
+    const bottom = Math.min(bounds.bottom, window.innerHeight) - 8;
+    if (right <= left || bottom <= top) return hide();
+    const scaleX = bounds.width / container.offsetWidth;
+    const scaleY = bounds.height / container.offsetHeight;
+    const element = tooltip.getElement();
+    Object.assign(element.style, {
+      boxSizing: 'border-box', width: 'max-content', whiteSpace: 'normal',
+      overflowWrap: 'anywhere', overflow: 'auto',
+      maxWidth: (right - left) / scaleX + 'px',
+      maxHeight: (bottom - top) / scaleY + 'px'
+    });
+    const box = element.getBoundingClientRect();
+    const p = map.latLngToContainerPoint(event.latlng);
+    const x = bounds.left + (p.x + container.clientLeft) * scaleX;
+    const y = bounds.top + (p.y + container.clientTop) * scaleY;
+    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    // Prefer above the pointer, flip below near the top, and clamp at edges.
+    const boxLeft = clamp(x - box.width / 2, left, right - box.width);
+    const boxTop = clamp(y - box.height - 12 >= top ? y - box.height - 12 : y + 12,
+      top, bottom - box.height);
+    tooltip.setLatLng(map.containerPointToLatLng([
+      (boxLeft + box.width / 2 - bounds.left) / scaleX - container.clientLeft,
+      (boxTop + box.height / 2 - bounds.top) / scaleY - container.clientTop
+    ])); // The box follows the pointer; its content still describes the sample.
+  }
+
+  line.on('pointermove', event => {
+    pending = event;
+    if (frame === undefined) frame = requestAnimationFrame(render);
+  });
+  line.on('pointerout', hide);
+  line.on('add', () => map.on('movestart', hide));
+  line.on('remove', () => {
+    hide();
+    map.off('movestart', hide); // Also clean up when GPX.reload() removes lines.
+  });
+}
+
+const map = new Map('map');
+new TileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+new GPX('https://mpetazzoni.github.io/leaflet-gpx/demo.gpx', { async: true })
+  .on('addline', event => addPointHover(map, event.line))
+  .on('loaded', event => map.fitBounds(event.target.getBounds()))
+  .addTo(map);
+```
+
+Leaflet 2 uses `pointermove`/`pointerout`; with Leaflet 1 and `leaflet-gpx@2`, use `mousemove`/`mouseout`, `L.tooltip(...)`, `L.map(...)`, `L.tileLayer(...)`, and `new L.GPX(...)` instead of these imports/classes. This is a pointer-hover example, not a touch or keyboard sample picker.
+
+Metadata keys are `time` (`Date`), `ele` (meters), `speed` (meters/second), `hr` (bpm), `cad` (rpm), and `atemp` (°C). Missing sensor values are `null`; malformed numeric values can be `NaN`, so check `Number.isFinite` without coercing `null` to zero. Zero and negative temperatures/elevations are legitimate values. Elevation can be carried forward from the preceding sample; speed is calculated from distance/time when absent (and can be a synthetic zero without timing). These values are parsed/derived data, not proof that the device measured them. Invalid dates are omitted above. The epoch check also hides a genuine recording at that exact local epoch: metadata alone does not distinguish it from a missing timestamp. If you need exact provenance, inspect the source track/route point XML in `addline.element` rather than presenting a synthetic date as a recording time.
+
+There is one hover listener and one exit listener per polyline, with at most one nearest-sample scan per animation frame and one projection pass per zoom. Panning needs no reprojection in world-pixel coordinates. The scan is still O(n); for very large tracks, build a spatial index over the projected samples per zoom. If your application edits a line's coordinates or changes the CRS, rebuild the cache (and reread `getLatLngs()`). The live demo uses the same approach.
+
 ## Line styling
 
 `leaflet-gpx` understands the [GPX
