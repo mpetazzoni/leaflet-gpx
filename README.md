@@ -31,8 +31,8 @@ information.
 
 ## Compatibility
 
-`leaflet-gpx` 3.x is an ES module for Leaflet 2.x. It is not yet published
-to npm; the examples below use the GitHub branch and Leaflet 2.0.0-beta.4.
+`leaflet-gpx` 3.x is an ES module for Leaflet 2.x, available under npm's
+`beta` tag. The examples below use Leaflet 2.0.0-beta.4.
 
 For Leaflet 1.x, use `leaflet-gpx@2.2.0` or the
 [2.x maintenance branch](https://github.com/mpetazzoni/leaflet-gpx/tree/leaflet-gpx-2.x).
@@ -59,7 +59,7 @@ Import `GPX`, create your map, and add the track:
       {
         "imports": {
           "leaflet": "https://unpkg.com/leaflet@2.0.0-beta.4/dist/leaflet.js",
-          "leaflet-gpx": "https://cdn.jsdelivr.net/gh/mpetazzoni/leaflet-gpx@main/gpx.js"
+          "leaflet-gpx": "https://unpkg.com/leaflet-gpx@3.0.0-beta.2/gpx.js"
         }
       }
     </script>
@@ -91,7 +91,7 @@ Import `GPX`, create your map, and add the track:
 ### Using with a bundler (Vite, Webpack, etc.)
 
 ```bash
-npm install leaflet@2.0.0-beta.4 'github:mpetazzoni/leaflet-gpx#main'
+npm install leaflet@beta leaflet-gpx@beta
 ```
 
 ```javascript
