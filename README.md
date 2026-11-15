@@ -589,8 +589,7 @@ new GPX(url, {
 
 ## Caveats
 
-* Waypoint popups use HTML. For untrusted GPX files, replace their contents
-  with text as shown in the [local-file example](#loading-local-files-and-urls).
+* Waypoint names and descriptions are displayed as text, not HTML.
 * Distance calculation is relatively accurate, but elevation change
   calculation is not topographically adjusted, so the total elevation
   gain/loss/change might appear inaccurate in some situations.

@@ -612,7 +612,9 @@ export class GPX extends FeatureGroup {
           icon: symIcon,
           type: 'waypoint'
         });
-        marker.bindPopup("<b>" + name + "</b>" + (desc.length > 0 ? '<br>' + desc : '')).openPopup();
+        var safeName = this._escape_html(name);
+        var safeDesc = this._escape_html(desc);
+        marker.bindPopup("<b>" + safeName + "</b>" + (safeDesc.length > 0 ? '<br>' + safeDesc : '')).openPopup();
         this.fire('addpoint', { point: marker, point_type: 'waypoint', element: el[i] });
         if (!current()) return;
         layers.push(marker);
@@ -624,6 +626,15 @@ export class GPX extends FeatureGroup {
     } else if (layers.length == 1) {
       return layers[0];
     }
+  }
+
+  _escape_html(text) {
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   _parse_segment(line, options, base_style, polyline_options, tag, current) {
