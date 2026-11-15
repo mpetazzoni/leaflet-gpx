@@ -37,7 +37,7 @@ Usage is very simple. As Leaflet 2.0 is an ESM-only library, you should use `lea
 ```html
 <html>
   <head>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@2.0.0-alpha.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@2.0.0-beta.4/dist/leaflet.css" />
     <style>
       #map { height: 500px; }
     </style>
@@ -49,7 +49,7 @@ Usage is very simple. As Leaflet 2.0 is an ESM-only library, you should use `lea
     <script type="importmap">
       {
         "imports": {
-          "leaflet": "https://unpkg.com/leaflet@2.0.0-alpha.1/dist/leaflet.js",
+          "leaflet": "https://unpkg.com/leaflet@2.0.0-beta.4/dist/leaflet.js",
           "leaflet-gpx": "./gpx.js"
         }
       }

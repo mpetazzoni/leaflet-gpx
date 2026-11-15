@@ -36,7 +36,7 @@
  * rendered on the Leaflet map.
  */
 
-import { FeatureGroup, Icon, Marker, Polyline, LatLng, Util } from 'leaflet';
+import { FeatureGroup, Icon, DefaultIcon, Marker, Polyline, LatLng, Util } from 'leaflet';
 
 const _MAX_POINT_INTERVAL_MS = 15000;
 const _SECOND_IN_MILLIS = 1000;
@@ -45,7 +45,7 @@ const _HOUR_IN_MILLIS = 60 * _MINUTE_IN_MILLIS;
 const _DAY_IN_MILLIS = 24 * _HOUR_IN_MILLIS;
 
 const _GPX_STYLE_NS = 'http://www.topografix.com/GPX/gpx_style/0/2';
-const _DEFAULT_ICON = new Icon.Default();
+const _DEFAULT_ICON = new DefaultIcon();
 
 const _DEFAULT_MARKERS = {
   startIcon: _DEFAULT_ICON,
