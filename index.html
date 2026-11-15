@@ -28,7 +28,7 @@
   POSSIBILITY OF SUCH DAMAGE.
 -->
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <title>leaflet-gpx demo</title>
@@ -45,15 +45,41 @@
       .gpx ul.info { list-style: none; margin: 1em 0 0 0; padding: 0; font-size: smaller; }
       .gpx ul.info li { color: #666; display: inline; }
       .gpx ul.info li span { color: black; }
+      .sources { display: flex; flex-wrap: wrap; gap: 0.75em; align-items: end; }
+      .sources > div { min-width: 0; max-width: 100%; }
+      .sources label { display: block; margin-bottom: 0.25em; }
+      .sources form { flex: 1 1 20em; min-width: 0; }
+      .url-fields { display: flex; flex-wrap: wrap; gap: 0.5em; }
+      input, button { font: inherit; box-sizing: border-box; max-width: 100%; }
+      input[type="url"], input[type="text"] { flex: 1 1 12em; min-width: 0; }
+      button { padding: 0.3em 0.6em; }
+      h3, .status, .start { overflow-wrap: anywhere; }
+      .leaflet-control-layers { max-width: calc(100% - 20px); overflow-wrap: anywhere; }
     </style>
   </head>
   <body>
     <section id="demo" class="gpx" data-gpx-source="demo.gpx" data-map-target="demo-map">
       <header>
         <h1><a href="https://github.com/mpetazzoni/leaflet-gpx">Leaflet GPX</a> Viewer Demo</h1>
-        <h3>Loading...</h3>
+        <div class="sources">
+          <div>
+            <label for="gpx-file">Open a local GPX file</label>
+            <input id="gpx-file" type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml" aria-describedby="source-help" />
+          </div>
+          <form id="gpx-url-form">
+            <label for="gpx-url">GPX URL (relative or HTTP/HTTPS)</label>
+            <div class="url-fields">
+              <input id="gpx-url" type="text" inputmode="url" placeholder="https://example.com/track.gpx" required aria-describedby="source-help" />
+              <button type="submit">Load URL</button>
+            </div>
+          </form>
+          <button id="gpx-reset" type="button">Reset to sample</button>
+        </div>
+        <p id="source-help">Local files are read in your browser, not uploaded. Map tiles still come from OpenStreetMap. Remote URLs must allow cross-origin requests (CORS); on an HTTPS page, use HTTPS URLs.</p>
+        <p class="status" role="status" aria-live="polite" aria-atomic="true">Loading sample...</p>
+        <h3>Sample track</h3>
         <span class="start"></span>
-        <p>Hover over the track to see the nearest recorded sample's time, elevation, speed, heart rate and cadence. Ambient temperature is shown when available (this recording has none). Zoom in to distinguish nearby samples.</p>
+        <p>Hover over a track or route to see the nearest sample's recorded data. Time, elevation, speed, heart rate, cadence and ambient temperature are shown when available. Zoom in to distinguish nearby samples. Unavailable summary values are shown as —.</p>
 
         <ul class="info">
           <li>Distance:&nbsp;<span class="distance"></span>&nbsp;mi</li>
@@ -80,63 +106,6 @@
       }
     </script>
 
-    <script type="module">
-      import { Map, TileLayer, LayersControl } from 'leaflet';
-      import { GPX } from 'leaflet-gpx';
-      import { addPointHover } from './point-hover.js';
-
-      function display_gpx(elt) {
-        if (!elt) return;
-
-        var url = elt.getAttribute('data-gpx-source');
-        var mapid = elt.getAttribute('data-map-target');
-        if (!url || !mapid) return;
-
-        function _t(t) { return elt.getElementsByTagName(t)[0]; }
-        function _c(c) { return elt.getElementsByClassName(c)[0]; }
-
-        var map = new Map(mapid);
-        var base = new TileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a> hosted by <a href="https://openstreetmap.fr/" target="_blank">OpenStreetMap France</a>'
-        });
-        base.addTo(map);
-
-        var control = new LayersControl(null, null).addTo(map);
-
-        new GPX(url, {
-          async: true,
-        }).on('addline', function(e) {
-          addPointHover(map, e.line);
-        }).on('error', function(e) {
-          _t('h3').textContent = 'Unable to load track: ' + e.err;
-        }).on('loaded', function(e) {
-          var gpx = e.target;
-          map.fitBounds(gpx.getBounds());
-          control.addOverlay(gpx, gpx.get_name());
-
-          /*
-           * Note: the code below relies on the fact that the demo GPX file is
-           * an actual GPS track with timing and heartrate information.
-           */
-          var link = document.createElement('a');
-          link.href = url;
-          link.textContent = gpx.get_name();
-          _t('h3').replaceChildren(link);
-          _c('start').textContent = gpx.get_start_time().toDateString() + ', '
-            + gpx.get_start_time().toLocaleTimeString();
-          _c('distance').textContent = gpx.get_distance_imp().toFixed(2);
-          _c('duration').textContent = gpx.get_duration_string(gpx.get_moving_time());
-          _c('pace').textContent     = gpx.get_duration_string(gpx.get_moving_pace_imp(), true);
-          _c('avghr').textContent    = gpx.get_average_hr();
-          _c('elevation-gain').textContent = gpx.to_ft(gpx.get_elevation_gain()).toFixed(0);
-          _c('elevation-loss').textContent = gpx.to_ft(gpx.get_elevation_loss()).toFixed(0);
-          _c('elevation-net').textContent  = gpx.to_ft(gpx.get_elevation_gain()
-            - gpx.get_elevation_loss()).toFixed(0);
-        }).addTo(map);
-      }
-
-      display_gpx(document.getElementById('demo'));
-    </script>
+    <script type="module" src="./demo.js"></script>
   </body>
 </html>

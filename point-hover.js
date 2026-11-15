@@ -11,6 +11,9 @@ export function addPointHover(map, line) {
     cancelAnimationFrame(frame);
     frame = pending = previous = undefined;
     tooltip.remove();
+    // Leaflet may leave a fading overlay in the DOM for 200 ms. Hide/remove it
+    // immediately so replacement tracks never leave stale sample text behind.
+    tooltip.getElement()?.remove();
   }
 
   function render() {
@@ -95,14 +98,24 @@ export function addPointHover(map, line) {
     ])); // The box follows the pointer; its content still describes the sample.
   }
 
-  line.on('pointermove', event => {
+  function move(event) {
     pending = event;
     if (frame === undefined) frame = requestAnimationFrame(render);
-  });
-  line.on('pointerout', hide);
-  line.on('add', () => map.on('movestart', hide));
-  line.on('remove', () => {
+  }
+  function add() { map.on('movestart', hide); }
+  function remove() {
     hide();
     map.off('movestart', hide); // Also clean up when GPX.reload() removes lines.
-  });
+  }
+  line.on('pointermove', move);
+  line.on('pointerout', hide);
+  line.on('add', add);
+  line.on('remove', remove);
+  return () => {
+    remove();
+    line.off('pointermove', move);
+    line.off('pointerout', hide);
+    line.off('add', add);
+    line.off('remove', remove);
+  };
 }
