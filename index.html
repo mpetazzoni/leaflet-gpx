@@ -30,15 +30,17 @@
 
 <html>
   <head>
+    <meta charset="utf-8" />
     <title>leaflet-gpx demo</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@2.0.0-alpha.1/dist/leaflet.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@2.0.0-beta.4/dist/leaflet.css" />
     <style type="text/css">
-       body { width: 75%; margin: 0 auto; font-family: 'Hiragino Sans', sans-serif; }
-      .gpx { width: 1000px; margin: 1em auto; }
+      body { max-width: 1000px; margin: 0 auto; padding: 0 1em; font-family: 'Hiragino Sans', sans-serif; }
+      .gpx { width: 100%; margin: 1em auto; }
       .gpx header { padding: 0.5em; }
       h1 a { text-decoration: none; color: black; border-bottom: 1px #444 dotted; }
       .gpx h3 { margin: 0; padding: 0; font-weight: bold; }
-      .gpx .map { border: 1px #888 solid; width: 1000px; height: 800px; margin: 0; }
+      .gpx .map { box-sizing: border-box; border: 1px #888 solid; width: 100%; height: min(70vh, 800px); min-height: 320px; margin: 0; }
       .gpx footer { padding: 0.5em; }
       .gpx ul.info { list-style: none; margin: 1em 0 0 0; padding: 0; font-size: smaller; }
       .gpx ul.info li { color: #666; display: inline; }
@@ -51,6 +53,7 @@
         <h1><a href="https://github.com/mpetazzoni/leaflet-gpx">Leaflet GPX</a> Viewer Demo</h1>
         <h3>Loading...</h3>
         <span class="start"></span>
+        <p>Hover over the track to see the nearest recorded sample's time, elevation, speed, heart rate and cadence. Ambient temperature is shown when available (this recording has none). Zoom in to distinguish nearby samples.</p>
 
         <ul class="info">
           <li>Distance:&nbsp;<span class="distance"></span>&nbsp;mi</li>
@@ -71,15 +74,16 @@
     <script type="importmap">
       {
         "imports": {
-          "leaflet": "https://unpkg.com/leaflet@2.0.0-alpha.1/dist/leaflet.js",
+          "leaflet": "https://unpkg.com/leaflet@2.0.0-beta.4/dist/leaflet.js",
           "leaflet-gpx": "./gpx.js"
         }
       }
     </script>
 
     <script type="module">
-      import { Map, TileLayer, Control } from 'leaflet';
+      import { Map, TileLayer, LayersControl } from 'leaflet';
       import { GPX } from 'leaflet-gpx';
+      import { addPointHover } from './point-hover.js';
 
       function display_gpx(elt) {
         if (!elt) return;
@@ -98,10 +102,14 @@
         });
         base.addTo(map);
 
-        var control = new Control.Layers(null, null).addTo(map);
+        var control = new LayersControl(null, null).addTo(map);
 
         new GPX(url, {
           async: true,
+        }).on('addline', function(e) {
+          addPointHover(map, e.line);
+        }).on('error', function(e) {
+          _t('h3').textContent = 'Unable to load track: ' + e.err;
         }).on('loaded', function(e) {
           var gpx = e.target;
           map.fitBounds(gpx.getBounds());
@@ -111,7 +119,10 @@
            * Note: the code below relies on the fact that the demo GPX file is
            * an actual GPS track with timing and heartrate information.
            */
-          _t('h3').innerHTML = '<a href="' + url + '">' + gpx.get_name() + '</a>';
+          var link = document.createElement('a');
+          link.href = url;
+          link.textContent = gpx.get_name();
+          _t('h3').replaceChildren(link);
           _c('start').textContent = gpx.get_start_time().toDateString() + ', '
             + gpx.get_start_time().toLocaleTimeString();
           _c('distance').textContent = gpx.get_distance_imp().toFixed(2);

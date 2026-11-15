@@ -36,7 +36,7 @@
  * rendered on the Leaflet map.
  */
 
-import { FeatureGroup, Icon, Marker, Polyline, LatLng, Util } from 'leaflet';
+import { FeatureGroup, Icon, DefaultIcon, Marker, Polyline, LatLng, Util } from 'leaflet';
 
 const _MAX_POINT_INTERVAL_MS = 15000;
 const _SECOND_IN_MILLIS = 1000;
@@ -45,7 +45,7 @@ const _HOUR_IN_MILLIS = 60 * _MINUTE_IN_MILLIS;
 const _DAY_IN_MILLIS = 24 * _HOUR_IN_MILLIS;
 
 const _GPX_STYLE_NS = 'http://www.topografix.com/GPX/gpx_style/0/2';
-const _DEFAULT_ICON = new Icon.Default();
+const _DEFAULT_ICON = new DefaultIcon();
 
 const _DEFAULT_MARKERS = {
   startIcon: _DEFAULT_ICON,
@@ -83,6 +83,7 @@ const _DEFAULT_GPX_OPTS = {
 export class GPX extends FeatureGroup {
   constructor(gpx, options) {
     super();
+    options = options || {};
     options.max_point_interval = options.max_point_interval || _MAX_POINT_INTERVAL_MS;
     options.markers = Object.assign({}, _DEFAULT_MARKERS, options.markers || {});
     options.marker_options = Object.assign({}, _DEFAULT_MARKER_OPTS, options.marker_options || {});
@@ -339,16 +340,39 @@ export class GPX extends FeatureGroup {
       });
   }
 
+  _xml_parse_error(doc) {
+    if (!doc.documentElement) {
+      return 'Invalid XML: the document is empty';
+    }
+    var el = doc.getElementsByTagName('parsererror');
+    if (!el.length) return null;
+    var details = (el[0].textContent || '').trim().replace(/\s+/g, ' ');
+    if (details.length > 200) details = details.substring(0, 200) + '...';
+    return 'Invalid XML: ' + details;
+  }
+
   _parse(input, options, async) {
     var _this = this;
-    var cb = function(gpx, options) {
+    var cb = function(gpx, options, deferEvents) {
+      var fire = function(event, data) {
+        if (deferEvents) {
+          setTimeout(function() { _this.fire(event, data); });
+        } else {
+          _this.fire(event, data);
+        }
+      };
+      var parseError = _this._xml_parse_error(gpx);
+      if (parseError) {
+        fire('error', { err: parseError });
+        return;
+      }
       var layers = _this._parse_gpx_data(gpx, options);
       if (!layers) {
-        _this.fire('error', { err: 'No parseable layers of type(s) ' + JSON.stringify(options.gpx_options.parseElements) });
+        fire('error', { err: 'No parseable layers of type(s) ' + JSON.stringify(options.gpx_options.parseElements) });
         return;
       }
       _this.addLayer(layers);
-      _this.fire('loaded', { layers: layers, element: gpx });
+      fire('loaded', { layers: layers, element: gpx });
     }
     if (input.substr(0,1)==='<') { // direct XML has to start with a <
       var parser = new DOMParser();
@@ -357,31 +381,69 @@ export class GPX extends FeatureGroup {
           cb(parser.parseFromString(input, "text/xml"), options);
         });
       } else {
-        cb(parser.parseFromString(input, "text/xml"), options);
+        // Parse synchronously so the parsed layer is usable as soon as the
+        // constructor returns, but fire the events on the next tick: event
+        // handlers can only be attached once the constructor has returned, so
+        // firing now would lose them.
+        cb(parser.parseFromString(input, "text/xml"), options, true);
       }
     } else {
       this._load_xml(input, cb, options, async);
     }
   }
 
+  _first_child(el, localName) {
+    if (!el) return null;
+    for (var i = 0; i < el.children.length; i++) {
+      if (el.children[i].localName === localName) return el.children[i];
+    }
+    return null;
+  }
+
+  /*
+   * Find the element carrying a given piece of GPX metadata, looking in the
+   * places the GPX spec allows it, in order of preference: the metadata block
+   * (GPX 1.1), directly under <gpx> (GPX 1.0), then the first track or route
+   * (some files only carry their name there).
+   *
+   * We deliberately look at direct children only: <name> also appears on every
+   * waypoint, track point and route point, and searching the whole document
+   * made get_name() return the name of the last waypoint instead of the file's.
+   */
+  _find_info_element(xml, localName) {
+    var root = xml.documentElement;
+    if (!root) return null;
+    var candidates = [
+      this._first_child(this._first_child(root, 'metadata'), localName),
+      this._first_child(root, localName),
+      this._first_child(xml.getElementsByTagName('trk')[0], localName),
+      this._first_child(xml.getElementsByTagName('rte')[0], localName),
+    ];
+    for (var i = 0; i < candidates.length; i++) {
+      if (candidates[i]) return candidates[i];
+    }
+    return null;
+  }
+
   _parse_gpx_data(xml, options) {
     var i, t, l, el, layers = [];
 
-    var name = xml.getElementsByTagName('name');
-    if (name.length > 0) {
-      this._info.name = name[0].textContent;
+    var name = this._find_info_element(xml, 'name');
+    if (name) {
+      this._info.name = name.textContent.trim();
     }
-    var desc = xml.getElementsByTagName('desc');
-    if (desc.length > 0) {
-      this._info.desc = desc[0].textContent;
+    var desc = this._find_info_element(xml, 'desc');
+    if (desc) {
+      this._info.desc = desc.textContent.trim();
     }
-    var author = xml.getElementsByTagName('author');
-    if (author.length > 0) {
-      this._info.author = author[0].textContent;
+    var author = this._find_info_element(xml, 'author');
+    if (author) {
+      var authorName = this._first_child(author, 'name');
+      this._info.author = (authorName || author).textContent.trim();
     }
-    var copyright = xml.getElementsByTagName('copyright');
-    if (copyright.length > 0) {
-      this._info.copyright = copyright[0].textContent;
+    var copyright = this._find_info_element(xml, 'copyright');
+    if (copyright) {
+      this._info.copyright = copyright.textContent.trim();
     }
 
     var parseElements = options.gpx_options.parseElements;
@@ -659,19 +721,42 @@ export class GPX extends FeatureGroup {
     var style = Object.assign({}, _DEFAULT_POLYLINE_OPTS, base);
     var e = el.getElementsByTagNameNS(_GPX_STYLE_NS, 'line');
     if (e.length > 0) {
-      var _ = e[0].getElementsByTagName('color');
+      var line = e[0];
+      var _ = line.getElementsByTagName('color');
       if (_.length > 0) style.color = '#' + _[0].textContent;
-      var _ = e[0].getElementsByTagName('opacity');
-      if (_.length > 0) style.opacity = _[0].textContent;
-      var _ = e[0].getElementsByTagName('weight');
-      if (_.length > 0) style.weight = _[0].textContent;
-      var _ = e[0].getElementsByTagName('linecap');
+      _ = line.getElementsByTagName('opacity');
+      if (_.length > 0) {
+        var opacity = parseFloat(_[0].textContent);
+        if (!isNaN(opacity)) style.opacity = opacity;
+      }
+      // GPX Style spec uses <width>; fall back to <weight> for backward compat
+      _ = line.getElementsByTagName('width');
+      if (_.length === 0) _ = line.getElementsByTagName('weight');
+      if (_.length > 0) {
+        var width = parseFloat(_[0].textContent);
+        if (!isNaN(width)) style.weight = width;
+      }
+      _ = line.getElementsByTagName('linecap');
       if (_.length > 0) style.lineCap = _[0].textContent;
-      var _ = e[0].getElementsByTagName('linejoin');
+      _ = line.getElementsByTagName('linejoin');
       if (_.length > 0) style.lineJoin = _[0].textContent;
-      var _ = e[0].getElementsByTagName('dasharray');
-      if (_.length > 0) style.dashArray = _[0].textContent;
-      var _ = e[0].getElementsByTagName('dashoffset');
+      // GPX Style spec uses <dasharray><dash mark="x" space="y"/>...</dasharray>;
+      // fall back to reading textContent for backward compat
+      _ = line.getElementsByTagName('dasharray');
+      if (_.length > 0) {
+        var dashes = _[0].getElementsByTagName('dash');
+        if (dashes.length > 0) {
+          var parts = [];
+          for (var i = 0; i < dashes.length; i++) {
+            parts.push(dashes[i].getAttribute('mark') || '0');
+            parts.push(dashes[i].getAttribute('space') || '0');
+          }
+          style.dashArray = parts.join(',');
+        } else {
+          style.dashArray = _[0].textContent;
+        }
+      }
+      _ = line.getElementsByTagName('dashoffset');
       if (_.length > 0) style.dashOffset = _[0].textContent;
     }
     return Object.assign(style, overrides);
