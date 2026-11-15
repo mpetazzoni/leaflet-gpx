@@ -128,6 +128,16 @@ const sparse = wrap('<rte><rtept lat="38" lon="-122"/><rtept lat="38.001" lon="-
       return (await page.locator('.leaflet-tooltip').innerText()).trim();
     }
     await page.waitForFunction(() => document.querySelector('.status').textContent.startsWith('Loaded '));
+    assert.ok(await page.evaluate(() => {
+      const map = document.querySelector('.map');
+      const sources = document.querySelector('.sources');
+      return sources.closest('footer') && sources.getBoundingClientRect().top >= map.getBoundingClientRect().bottom &&
+        parseFloat(getComputedStyle(sources).fontSize) < parseFloat(getComputedStyle(document.body).fontSize);
+    }), 'Compact loading controls belong below the map');
+    if (process.env.SCREENSHOT_DIR) {
+      fs.mkdirSync(process.env.SCREENSHOT_DIR, { recursive: true });
+      await page.screenshot({ path: path.join(process.env.SCREENSHOT_DIR, 'demo-controls-desktop.png'), fullPage: true });
+    }
     const sampleName = await page.locator('h3').innerText();
     assert.ok(await page.locator('h3 a').count());
     const sample = await latestRecord();
@@ -276,6 +286,9 @@ const sparse = wrap('<rte><rtept lat="38" lon="-122"/><rtept lat="38.001" lon="-
     assert.ok((await page.locator('h3 a').getAttribute('href')).endsWith('/demo.gpx'), 'Relative URL supported');
     await page.setViewportSize({ width: 220, height: 800 });
     assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Narrow layout has no horizontal overflow');
+    if (process.env.SCREENSHOT_DIR) {
+      await page.screenshot({ path: path.join(process.env.SCREENSHOT_DIR, 'demo-controls-mobile.png'), fullPage: true });
+    }
     assert.equal(await page.evaluate(() => window.__objectURLs), 0, 'No file object URL lifecycle/leak');
     // Serve the exact app under a mocked HTTPS origin to exercise mixed-content
     // validation without certificates, outside servers or browser flags.

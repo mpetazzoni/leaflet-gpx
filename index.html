@@ -41,14 +41,16 @@
       h1 a { text-decoration: none; color: black; border-bottom: 1px #444 dotted; }
       .gpx h3 { margin: 0; padding: 0; font-weight: bold; }
       .gpx .map { box-sizing: border-box; border: 1px #888 solid; width: 100%; height: min(70vh, 800px); min-height: 320px; margin: 0; }
-      .gpx footer { padding: 0.5em; }
+      .gpx footer { padding: 0.75em 0; font-size: 0.875rem; }
+      .gpx footer p { margin: 0.6em 0; }
+      #source-help { color: #555; font-size: 0.9em; }
       .gpx ul.info { list-style: none; margin: 1em 0 0 0; padding: 0; font-size: smaller; }
       .gpx ul.info li { color: #666; display: inline; }
       .gpx ul.info li span { color: black; }
-      .sources { display: flex; flex-wrap: wrap; gap: 0.75em; align-items: end; }
+      .sources { display: flex; flex-wrap: wrap; gap: 0.5em; align-items: end; }
       .sources > div { min-width: 0; max-width: 100%; }
       .sources label { display: block; margin-bottom: 0.25em; }
-      .sources form { flex: 1 1 20em; min-width: 0; }
+      .sources form { flex: 1 1 18em; min-width: 0; }
       .url-fields { display: flex; flex-wrap: wrap; gap: 0.5em; }
       input, button { font: inherit; box-sizing: border-box; max-width: 100%; }
       input[type="url"], input[type="text"] { flex: 1 1 12em; min-width: 0; }
@@ -61,22 +63,6 @@
     <section id="demo" class="gpx" data-gpx-source="demo.gpx" data-map-target="demo-map">
       <header>
         <h1><a href="https://github.com/mpetazzoni/leaflet-gpx">Leaflet GPX</a> Viewer Demo</h1>
-        <div class="sources">
-          <div>
-            <label for="gpx-file">Open a local GPX file</label>
-            <input id="gpx-file" type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml" aria-describedby="source-help" />
-          </div>
-          <form id="gpx-url-form">
-            <label for="gpx-url">GPX URL (relative or HTTP/HTTPS)</label>
-            <div class="url-fields">
-              <input id="gpx-url" type="text" inputmode="url" placeholder="https://example.com/track.gpx" required aria-describedby="source-help" />
-              <button type="submit">Load URL</button>
-            </div>
-          </form>
-          <button id="gpx-reset" type="button">Reset to sample</button>
-        </div>
-        <p id="source-help">Local files are read in your browser, not uploaded. Map tiles still come from OpenStreetMap. Remote URLs must allow cross-origin requests (CORS); on an HTTPS page, use HTTPS URLs.</p>
-        <p class="status" role="status" aria-live="polite" aria-atomic="true">Loading sample...</p>
         <h3>Sample track</h3>
         <span class="start"></span>
         <p>Hover over a track or route to see the nearest sample's recorded data. Time, elevation, speed, heart rate, cadence and ambient temperature are shown when available. Zoom in to distinguish nearby samples. Unavailable summary values are shown as —.</p>
@@ -95,6 +81,25 @@
       <article>
         <div class="map" id="demo-map"></div>
       </article>
+
+      <footer aria-label="Load a GPX track">
+        <div class="sources">
+          <div>
+            <label for="gpx-file">Open a local GPX file</label>
+            <input id="gpx-file" type="file" accept=".gpx,application/gpx+xml,application/xml,text/xml" aria-describedby="source-help" />
+          </div>
+          <form id="gpx-url-form">
+            <label for="gpx-url">GPX URL (relative or HTTP/HTTPS)</label>
+            <div class="url-fields">
+              <input id="gpx-url" type="text" inputmode="url" placeholder="https://example.com/track.gpx" required aria-describedby="source-help" />
+              <button type="submit">Load URL</button>
+            </div>
+          </form>
+          <button id="gpx-reset" type="button">Reset to sample</button>
+        </div>
+        <p id="source-help">Local files are read in your browser, not uploaded. Map tiles still come from OpenStreetMap. Remote URLs must allow cross-origin requests (CORS); on an HTTPS page, use HTTPS URLs.</p>
+        <p class="status" role="status" aria-live="polite" aria-atomic="true">Loading sample...</p>
+      </footer>
     </section>
 
     <script type="importmap">
