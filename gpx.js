@@ -333,10 +333,20 @@ L.GPX = L.FeatureGroup.extend({
       req.overrideMimeType('text/xml'); // unsupported by IE
     } catch(e) {}
     req.onloadend = function() {
+      // An undefined async option leaves the request synchronous, so the
+      // callback runs inside the constructor: defer the events in that case,
+      // like the inline XML path does, or listeners attached just after
+      // construction would never see them.
+      var deferEvents = !async;
       if (req.status == 200) {
-        cb(req.responseXML, options);
+        cb(req.responseXML, options, deferEvents);
       } else {
-        _this.fire('error', { err: 'Error fetching resource: ' + url });
+        var data = { err: 'Error fetching resource: ' + url };
+        if (deferEvents) {
+          setTimeout(function() { _this.fire('error', data); });
+        } else {
+          _this.fire('error', data);
+        }
       }
     };
     req.send(null);
@@ -344,14 +354,21 @@ L.GPX = L.FeatureGroup.extend({
 
   _parse: function(input, options, async) {
     var _this = this;
-    var cb = function(gpx, options) {
+    var cb = function(gpx, options, deferEvents) {
+      var fire = function(event, data) {
+        if (deferEvents) {
+          setTimeout(function() { _this.fire(event, data); });
+        } else {
+          _this.fire(event, data);
+        }
+      };
       var layers = _this._parse_gpx_data(gpx, options);
       if (!layers) {
-        _this.fire('error', { err: 'No parseable layers of type(s) ' + JSON.stringify(options.gpx_options.parseElements) });
+        fire('error', { err: 'No parseable layers of type(s) ' + JSON.stringify(options.gpx_options.parseElements) });
         return;
       }
       _this.addLayer(layers);
-      _this.fire('loaded', { layers: layers, element: gpx });
+      fire('loaded', { layers: layers, element: gpx });
     }
     if (input.substr(0,1)==='<') { // direct XML has to start with a <
       var parser = new DOMParser();
@@ -360,7 +377,11 @@ L.GPX = L.FeatureGroup.extend({
           cb(parser.parseFromString(input, "text/xml"), options);
         });
       } else {
-        cb(parser.parseFromString(input, "text/xml"), options);
+        // Parse synchronously so the parsed layer is usable as soon as the
+        // constructor returns, but fire the events on the next tick: event
+        // handlers can only be attached once the constructor has returned, so
+        // firing now would lose them.
+        cb(parser.parseFromString(input, "text/xml"), options, true);
       }
     } else {
       this._load_xml(input, cb, options, async);
