@@ -82,6 +82,7 @@ var _DEFAULT_GPX_OPTS = {
 
 L.GPX = L.FeatureGroup.extend({
   initialize: function(gpx, options) {
+    options = options || {};
     options.max_point_interval = options.max_point_interval || _MAX_POINT_INTERVAL_MS;
     options.markers = this._merge_objs(
       _DEFAULT_MARKERS,
