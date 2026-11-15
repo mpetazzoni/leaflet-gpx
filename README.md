@@ -59,7 +59,7 @@ Import `GPX`, create your map, and add the track:
       {
         "imports": {
           "leaflet": "https://unpkg.com/leaflet@2.0.0-beta.4/dist/leaflet.js",
-          "leaflet-gpx": "https://unpkg.com/leaflet-gpx@3.0.0-beta.2/gpx.js"
+          "leaflet-gpx": "https://unpkg.com/leaflet-gpx@3.0.0-beta.3/gpx.js"
         }
       }
     </script>
